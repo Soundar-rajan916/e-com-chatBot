@@ -1,26 +1,17 @@
 import json
-from decimal import Decimal
+
 import pytest
 
 from app.prompts import (
     build_generator_prompt,
-    ORDER_STATUS_PROMPT_SECTION,
-    REFUND_PROMPT_SECTION,
-    POLICY_PROMPT_SECTION,
-    PRODUCT_PROMPT_SECTION,
-    ESCALATION_PROMPT_SECTION,
-    SMALLTALK_PROMPT_SECTION,
 )
 from app.schemas import (
     OrderItemSummary,
-    OrderSummary,
     OrderStatusData,
-    RefundData,
-    PolicyData,
+    OrderSummary,
     ProductCard,
     ProductListData,
-    EscalationData,
-    SmalltalkData,
+    RefundData,
     StructuredGeneratorOutput,
 )
 from app.services.generator import generate_response

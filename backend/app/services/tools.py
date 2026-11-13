@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models import Order, Refund
+from app.models import Escalation, EscalationEvent, Order, Refund
 from app.services.payments import MockPaymentGateway
 
 
@@ -196,11 +196,13 @@ async def create_refund(
     order_number: str,
     refund_reason: str | None,
     auto_approve_limit: Decimal,
+    session_id: UUID | None = None,
     payment_gateway: MockPaymentGateway | None = None,
 ) -> dict[str, Any]:
     """
     Execute refund creation inside a transaction with SELECT FOR UPDATE row locking.
     Threshold comparison is strictly done in code against auto_approve_limit.
+    Creates or links a high-priority escalation if refund is pending_approval in the same transaction.
     """
     gateway = payment_gateway or MockPaymentGateway()
     reason_text = refund_reason or "Customer requested refund"
@@ -264,12 +266,73 @@ async def create_refund(
         decided_by=decided_by,
     )
     session.add(new_refund)
+    await session.flush()
+
+    escalation_id: str | None = None
+    if refund_status == "pending_approval" and session_id is not None:
+        # Idempotent: check for existing active escalation for this session
+        esc_stmt = (
+            select(Escalation)
+            .where(
+                Escalation.session_id == session_id,
+                Escalation.status.in_(["open", "in_progress"]),
+            )
+            .with_for_update()
+        )
+        existing_esc = (await session.execute(esc_stmt)).scalar_one_or_none()
+
+        if existing_esc:
+            existing_esc.refund_id = new_refund.id
+            existing_esc.priority = "high"
+            existing_esc.reason_type = "refund_pending_approval"
+            escalation_id = str(existing_esc.id)
+            event = EscalationEvent(
+                escalation_id=existing_esc.id,
+                actor_type="system",
+                actor_id=None,
+                action="priority_changed",
+                detail={
+                    "priority": "high",
+                    "refund_id": str(new_refund.id),
+                    "reason_type": "refund_pending_approval",
+                },
+            )
+            session.add(event)
+        else:
+            new_esc = Escalation(
+                session_id=session_id,
+                customer_id=customer_id,
+                reason=f"Refund approval required for {order_number} (₹{amount})",
+                reason_type="refund_pending_approval",
+                status="open",
+                priority="high",
+                refund_id=new_refund.id,
+                version=1,
+            )
+            session.add(new_esc)
+            await session.flush()
+            escalation_id = str(new_esc.id)
+            event = EscalationEvent(
+                escalation_id=new_esc.id,
+                actor_type="system",
+                actor_id=None,
+                action="created",
+                detail={
+                    "reason_type": "refund_pending_approval",
+                    "order_number": order_number,
+                    "amount": str(amount),
+                    "refund_id": str(new_refund.id),
+                },
+            )
+            session.add(event)
+
     await session.commit()
     await session.refresh(new_refund)
 
     return {
         "success": True,
         "refund_id": str(new_refund.id),
+        "escalation_id": escalation_id,
         "order_number": order_number,
         "amount": str(amount),
         "status": refund_status,

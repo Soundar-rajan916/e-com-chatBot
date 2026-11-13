@@ -9,6 +9,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.api.admin_auth import router as admin_auth_router
+from app.api.admin_cases import (
+    public_router as public_session_router,
+)
+from app.api.admin_cases import (
+    router as admin_cases_router,
+)
+from app.api.admin_escalations import (
+    router as admin_escalations_router,
+)
 from app.api.chat import router as chat_router
 from app.api.customers import router as customers_router
 from app.api.debug import router as debug_router
@@ -28,6 +38,7 @@ logger = logging.getLogger("app.main")
 async def lifespan(app: FastAPI):
     logger.info("Application starting up...")
     import asyncio
+
     from app.services.embeddings import get_embedder
 
     async def _bg_warm():
@@ -62,8 +73,8 @@ def create_app() -> FastAPI:
         CORSMiddleware,
         allow_origins=settings.cors_origins_list,
         allow_credentials=True,
-        allow_methods=["GET", "POST", "OPTIONS"],
-        allow_headers=["Content-Type", "Authorization", "X-Request-ID"],
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allow_headers=["Content-Type", "Authorization", "X-Request-ID", "X-Requested-With", "Accept"],
         expose_headers=["X-Request-ID"],
     )
 
@@ -101,10 +112,41 @@ def create_app() -> FastAPI:
                 headers={"X-Request-ID": req_id},
             )
 
+    # Custom Exception Handlers for standard Admin error format: {"error": {"code": str, "message": str}}
+    @app.exception_handler(StarletteHTTPException)
+    async def admin_http_exception_handler(request: Request, exc: StarletteHTTPException):
+        if request.url.path.startswith("/admin"):
+            code = "error"
+            message = str(exc.detail)
+            if isinstance(exc.detail, dict):
+                code = exc.detail.get("code", "error")
+                message = exc.detail.get("message", str(exc.detail))
+            elif exc.status_code == 401:
+                code = "invalid_credentials"
+            elif exc.status_code == 403:
+                code = "forbidden"
+            elif exc.status_code == 404:
+                code = "not_found"
+            elif exc.status_code == 409:
+                code = "conflict"
+            return JSONResponse(
+                status_code=exc.status_code,
+                content={"error": {"code": code, "message": message}},
+                headers={"Cache-Control": "no-store"},
+            )
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail},
+        )
+
     # Router registration
     app.include_router(health_router, tags=["Health"])
     app.include_router(chat_router, tags=["Chat"])
     app.include_router(debug_router, tags=["Debug"])
+    app.include_router(admin_auth_router)
+    app.include_router(admin_cases_router)
+    app.include_router(admin_escalations_router)
+    app.include_router(public_session_router)
 
     if is_dev:
         app.include_router(customers_router, tags=["Demo Customers"])

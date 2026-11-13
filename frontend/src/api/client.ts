@@ -1,8 +1,13 @@
 import {
+  Agent,
   ChatRequestPayload,
   ChatResponsePayload,
   DemoCustomer,
+  EscalationFullDetail,
+  EscalationsListResponse,
+  EscalationStats,
   HealthResponsePayload,
+  TranscriptMessage,
 } from './types';
 
 export class ApiError extends Error {
@@ -21,10 +26,13 @@ export class ApiError extends Error {
       return detail || 'Invalid message. Please check message length and content.';
     }
     if (status === 403) {
-      return 'Access forbidden. This session does not belong to the selected customer.';
+      return detail || 'Access forbidden.';
     }
     if (status === 404) {
-      return 'The requested customer or resource was not found.';
+      return detail || 'The requested customer or resource was not found.';
+    }
+    if (status === 409) {
+      return detail || 'Conflict detected. Please refresh and try again.';
     }
     if (status >= 500) {
       return 'We are experiencing a temporary server problem. Please retry.';
@@ -111,6 +119,263 @@ export async function getDemoCustomers(): Promise<DemoCustomer[]> {
 export async function getHealth(): Promise<HealthResponsePayload> {
   const url = `${getBaseUrl()}/health`;
   return requestWithTimeout<HealthResponsePayload>(url, {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+    },
+  });
+}
+
+// ==========================================
+// Admin Auth & Escalations Endpoints
+// ==========================================
+
+export async function adminLogin(email: string, password: string): Promise<Agent> {
+  const url = `${getBaseUrl()}/admin/auth/login`;
+  return requestWithTimeout<Agent>(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'admin-console',
+    },
+    credentials: 'include',
+    body: JSON.stringify({ email, password }),
+  });
+}
+
+export async function adminLogout(): Promise<{ message: string }> {
+  const url = `${getBaseUrl()}/admin/auth/logout`;
+  return requestWithTimeout<{ message: string }>(url, {
+    method: 'POST',
+    headers: {
+      'X-Requested-With': 'admin-console',
+    },
+    credentials: 'include',
+  });
+}
+
+export async function getAdminMe(): Promise<Agent> {
+  const url = `${getBaseUrl()}/admin/auth/me`;
+  return requestWithTimeout<Agent>(url, {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+    },
+    credentials: 'include',
+  });
+}
+
+export async function getEscalations(params?: {
+  status?: string;
+  priority?: string;
+  reason_type?: string;
+  assigned?: string;
+  q?: string;
+  overdue?: boolean;
+  limit?: number;
+  offset?: number;
+}): Promise<EscalationsListResponse> {
+  const query = new URLSearchParams();
+  if (params?.status) query.set('status', params.status);
+  if (params?.priority) query.set('priority', params.priority);
+  if (params?.reason_type) query.set('reason_type', params.reason_type);
+  if (params?.assigned) query.set('assigned', params.assigned);
+  if (params?.q) query.set('q', params.q);
+  if (params?.overdue) query.set('overdue', 'true');
+  if (params?.limit) query.set('limit', params.limit.toString());
+  if (params?.offset) query.set('offset', params.offset.toString());
+
+  const qs = query.toString();
+  const url = `${getBaseUrl()}/admin/escalations${qs ? `?${qs}` : ''}`;
+  return requestWithTimeout<EscalationsListResponse>(url, {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+    },
+    credentials: 'include',
+  });
+}
+
+export async function getEscalationStats(): Promise<EscalationStats> {
+  const url = `${getBaseUrl()}/admin/escalations/stats`;
+  return requestWithTimeout<EscalationStats>(url, {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+    },
+    credentials: 'include',
+  });
+}
+
+export async function getEscalationDetail(id: string): Promise<EscalationFullDetail> {
+  const url = `${getBaseUrl()}/admin/escalations/${id}`;
+  return requestWithTimeout<EscalationFullDetail>(url, {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+    },
+    credentials: 'include',
+  });
+}
+
+export async function assignEscalation(
+  id: string,
+  version: number,
+  agentId?: string,
+  force = false
+): Promise<{ message: string; version: number; status: string }> {
+  const url = `${getBaseUrl()}/admin/escalations/${id}/assign`;
+  return requestWithTimeout<{ message: string; version: number; status: string }>(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'admin-console',
+    },
+    credentials: 'include',
+    body: JSON.stringify({ version, agent_id: agentId || null, force }),
+  });
+}
+
+export async function unassignEscalation(
+  id: string,
+  version: number
+): Promise<{ message: string; version: number; status: string }> {
+  const url = `${getBaseUrl()}/admin/escalations/${id}/unassign`;
+  return requestWithTimeout<{ message: string; version: number; status: string }>(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'admin-console',
+    },
+    credentials: 'include',
+    body: JSON.stringify({ version }),
+  });
+}
+
+export async function addEscalationNote(
+  id: string,
+  body: string
+): Promise<{ message: string; note_id: string }> {
+  const url = `${getBaseUrl()}/admin/escalations/${id}/notes`;
+  return requestWithTimeout<{ message: string; note_id: string }>(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'admin-console',
+    },
+    credentials: 'include',
+    body: JSON.stringify({ body }),
+  });
+}
+
+export async function replyEscalation(
+  id: string,
+  message: string
+): Promise<{ message: string; message_id: string }> {
+  const url = `${getBaseUrl()}/admin/escalations/${id}/reply`;
+  return requestWithTimeout<{ message: string; message_id: string }>(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'admin-console',
+    },
+    credentials: 'include',
+    body: JSON.stringify({ message }),
+  });
+}
+
+export async function approveRefund(
+  id: string,
+  version: number
+): Promise<{ message: string; version: number }> {
+  const url = `${getBaseUrl()}/admin/escalations/${id}/refund/approve`;
+  return requestWithTimeout<{ message: string; version: number }>(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'admin-console',
+    },
+    credentials: 'include',
+    body: JSON.stringify({ version }),
+  });
+}
+
+export async function rejectRefund(
+  id: string,
+  reason: string,
+  version: number
+): Promise<{ message: string; version: number }> {
+  const url = `${getBaseUrl()}/admin/escalations/${id}/refund/reject`;
+  return requestWithTimeout<{ message: string; version: number }>(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'admin-console',
+    },
+    credentials: 'include',
+    body: JSON.stringify({ reason, version }),
+  });
+}
+
+export async function resolveEscalation(
+  id: string,
+  resolutionNote: string,
+  version: number
+): Promise<{ message: string; version: number }> {
+  const url = `${getBaseUrl()}/admin/escalations/${id}/resolve`;
+  return requestWithTimeout<{ message: string; version: number }>(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'admin-console',
+    },
+    credentials: 'include',
+    body: JSON.stringify({ resolution_note: resolutionNote, version }),
+  });
+}
+
+export async function reopenEscalation(
+  id: string,
+  version: number
+): Promise<{ message: string; version: number; status: string }> {
+  const url = `${getBaseUrl()}/admin/escalations/${id}/reopen`;
+  return requestWithTimeout<{ message: string; version: number; status: string }>(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'admin-console',
+    },
+    credentials: 'include',
+    body: JSON.stringify({ version }),
+  });
+}
+
+export async function updatePriority(
+  id: string,
+  priority: 'low' | 'normal' | 'high',
+  version: number
+): Promise<{ message: string; version: number; priority: string }> {
+  const url = `${getBaseUrl()}/admin/escalations/${id}/priority`;
+  return requestWithTimeout<{ message: string; version: number; priority: string }>(url, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'admin-console',
+    },
+    credentials: 'include',
+    body: JSON.stringify({ priority, version }),
+  });
+}
+
+export async function pollSessionMessages(
+  sessionId: string,
+  customerId: string,
+  after?: string
+): Promise<TranscriptMessage[]> {
+  const query = new URLSearchParams({ customer_id: customerId });
+  if (after) query.set('after', after);
+  const url = `${getBaseUrl()}/sessions/${sessionId}/messages?${query.toString()}`;
+  return requestWithTimeout<TranscriptMessage[]>(url, {
     method: 'GET',
     headers: {
       'Accept': 'application/json',

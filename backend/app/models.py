@@ -4,6 +4,7 @@ from decimal import Decimal
 from typing import Any
 
 from sqlalchemy import (
+    Boolean,
     DateTime,
     ForeignKey,
     Index,
@@ -159,13 +160,20 @@ class ChatMessage(Base):
     session_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("chat_sessions.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    role: Mapped[str] = mapped_column(String(20), nullable=False)
+    role: Mapped[str] = mapped_column(String(20), nullable=False)  # 'user' | 'assistant' | 'agent'
     content: Mapped[str] = mapped_column(Text, nullable=False)
+    agent_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("agents.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    input_mode: Mapped[str] = mapped_column(String(20), default="text", nullable=False)  # 'text' | 'voice'
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
     session: Mapped["ChatSession"] = relationship("ChatSession", back_populates="messages")
+    agent: Mapped["Agent | None"] = relationship("Agent")
+
+    __table_args__ = (Index("ix_chat_messages_session_created", "session_id", "created_at"),)
 
 
 class Trace(Base):
@@ -190,6 +198,47 @@ class Trace(Base):
     )
 
 
+class Agent(Base):
+    __tablename__ = "agents"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    password_hash: Mapped[str] = mapped_column(Text, nullable=False)
+    role: Mapped[str] = mapped_column(String(20), nullable=False, default="agent")  # 'agent' | 'admin'
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    failed_attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    sessions: Mapped[list["AgentSession"]] = relationship(
+        "AgentSession", back_populates="agent", cascade="all, delete-orphan"
+    )
+    assigned_escalations: Mapped[list["Escalation"]] = relationship(
+        "Escalation", back_populates="assigned_agent"
+    )
+
+
+class AgentSession(Base):
+    __tablename__ = "agent_sessions"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    agent_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("agents.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    user_agent: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    agent: Mapped["Agent"] = relationship("Agent", back_populates="sessions")
+
+
 class Escalation(Base):
     __tablename__ = "escalations"
 
@@ -197,13 +246,113 @@ class Escalation(Base):
     session_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("chat_sessions.id", ondelete="CASCADE"), nullable=False, index=True
     )
+    customer_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     reason: Mapped[str] = mapped_column(Text, nullable=False)
-    status: Mapped[str] = mapped_column(String(20), default="open", nullable=False)
+    reason_type: Mapped[str] = mapped_column(
+        String(50), nullable=False, default="user_requested"
+    )  # 'user_requested' | 'router_fallback' | 'llm_failure' | 'refund_pending_approval'
+    status: Mapped[str] = mapped_column(
+        String(20), default="open", nullable=False
+    )  # 'open' | 'in_progress' | 'resolved'
+    priority: Mapped[str] = mapped_column(
+        String(20), default="normal", nullable=False
+    )  # 'low' | 'normal' | 'high'
+    assigned_to: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("agents.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    refund_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("refunds.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    resolution_note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    first_response_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    session: Mapped["ChatSession"] = relationship("ChatSession", back_populates="escalations")
+    customer: Mapped["Customer"] = relationship("Customer")
+    assigned_agent: Mapped["Agent | None"] = relationship("Agent", back_populates="assigned_escalations")
+    refund: Mapped["Refund | None"] = relationship("Refund")
+    notes: Mapped[list["EscalationNote"]] = relationship(
+        "EscalationNote",
+        back_populates="escalation",
+        cascade="all, delete-orphan",
+        order_by="EscalationNote.created_at",
+    )
+    events: Mapped[list["EscalationEvent"]] = relationship(
+        "EscalationEvent",
+        back_populates="escalation",
+        cascade="all, delete-orphan",
+        order_by="EscalationEvent.created_at",
+    )
+
+    __table_args__ = (
+        Index("ix_escalations_status", "status"),
+        Index("ix_escalations_created_at", "created_at"),
+        Index(
+            "uq_active_session_escalation",
+            "session_id",
+            unique=True,
+            postgresql_where=status.in_(["open", "in_progress"]),
+        ),
+    )
+
+
+class EscalationNote(Base):
+    __tablename__ = "escalation_notes"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    escalation_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("escalations.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    agent_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("agents.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    body: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
-    session: Mapped["ChatSession"] = relationship("ChatSession", back_populates="escalations")
+    escalation: Mapped["Escalation"] = relationship("Escalation", back_populates="notes")
+    agent: Mapped["Agent"] = relationship("Agent")
+
+
+class EscalationEvent(Base):
+    __tablename__ = "escalation_events"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    escalation_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("escalations.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    actor_type: Mapped[str] = mapped_column(String(20), nullable=False)  # 'system' | 'agent'
+    actor_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    action: Mapped[str] = mapped_column(String(50), nullable=False)
+    # 'created' | 'assigned' | 'unassigned' | 'note_added' | 'replied' | 'refund_approved' | 'refund_rejected' | 'resolved' | 'reopened' | 'priority_changed'
+    detail: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    escalation: Mapped["Escalation"] = relationship("Escalation", back_populates="events")
+
+
+class GovernorEvent(Base):
+    __tablename__ = "governor_events"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    from_mode: Mapped[str] = mapped_column(String(20), nullable=False)
+    to_mode: Mapped[str] = mapped_column(String(20), nullable=False)
+    month_spend_inr: Mapped[Decimal] = mapped_column(Numeric(12, 4), nullable=False)
+    day_spend_inr: Mapped[Decimal] = mapped_column(Numeric(12, 4), nullable=False)
+    reason: Mapped[str] = mapped_column(Text, nullable=False)
 
 
 # ==========================================

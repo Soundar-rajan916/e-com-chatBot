@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ApiError, sendMessage as sendApiMessage } from '../api/client';
+import { ApiError, pollSessionMessages, sendMessage as sendApiMessage } from '../api/client';
 import { ChatMessageItem, DemoCustomer } from '../api/types';
 
 interface StoredSessionState {
@@ -13,6 +13,9 @@ export function useChat(selectedCustomer: DemoCustomer | null) {
   const [isPending, setIsPending] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [lastFailedMessage, setLastFailedMessage] = useState<string | null>(null);
+
+  // Check if case was escalated / requires human
+  const hasHumanEscalation = messages.some((m) => m.requires_human || m.role === 'agent');
 
   // Load conversation from sessionStorage when customer changes
   useEffect(() => {
@@ -57,6 +60,49 @@ export function useChat(selectedCustomer: DemoCustomer | null) {
       // Ignore quota or private browsing errors safely
     }
   }, [selectedCustomer, sessionId, messages]);
+
+  // Background polling for agent replies when human handoff is active
+  useEffect(() => {
+    if (!selectedCustomer || !sessionId || !hasHumanEscalation) return;
+
+    let isMounted = true;
+    const intervalId = setInterval(async () => {
+      try {
+        const serverMessages = await pollSessionMessages(sessionId, selectedCustomer.id);
+        if (!isMounted || !serverMessages || serverMessages.length === 0) return;
+
+        setMessages((prev) => {
+          // Check if any agent messages on server are not in client
+          const existingContents = new Set(prev.map((m) => `${m.role}_${m.content}`));
+          const newAgentMessages = serverMessages
+            .filter((sm) => sm.role === 'agent' && !existingContents.has(`${sm.role}_${sm.content}`))
+            .map((sm) => ({
+              id: sm.id,
+              role: 'agent' as const,
+              content: sm.content,
+              timestamp: new Date(sm.created_at).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+              }),
+              agent_name: sm.agent_name,
+              input_mode: sm.input_mode,
+            }));
+
+          if (newAgentMessages.length > 0) {
+            return [...prev, ...newAgentMessages];
+          }
+          return prev;
+        });
+      } catch {
+        // Silently ignore background polling errors
+      }
+    }, 3000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+    };
+  }, [selectedCustomer, sessionId, hasHumanEscalation]);
 
   const sendMessage = useCallback(
     async (text: string, isRetry = false) => {

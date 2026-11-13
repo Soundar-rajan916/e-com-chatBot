@@ -10,6 +10,7 @@ class ChatRequest(BaseModel):
     customer_id: UUID
     session_id: UUID | None = None
     message: str = Field(..., min_length=1)
+    input_mode: str = Field(default="text")
 
 
 class SourceItem(BaseModel):
@@ -21,6 +22,7 @@ class SourceItem(BaseModel):
 # ============================================================================
 # Structured Output Data Models
 # ============================================================================
+
 
 class OrderItemSummary(BaseModel):
     product_title: str
@@ -99,6 +101,7 @@ class StructuredGeneratorOutput(BaseModel):
 # ============================================================================
 # API Response Models
 # ============================================================================
+
 
 class ChatResponse(BaseModel):
     session_id: UUID

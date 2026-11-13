@@ -71,8 +71,20 @@ class GroqLLMClient:
             # Language detection
             is_ta = bool(re.search(r"[\u0B80-\u0BFF]", user_msg))
             tanglish_markers = [
-                "irukka", "venum", "eppo", "vanakkam", "bro", "panringa",
-                "illai", "kulla", "naal", "mudiyuma", "romba", "kooda", "enna", "sollunga"
+                "irukka",
+                "venum",
+                "eppo",
+                "vanakkam",
+                "bro",
+                "panringa",
+                "illai",
+                "kulla",
+                "naal",
+                "mudiyuma",
+                "romba",
+                "kooda",
+                "enna",
+                "sollunga",
             ]
             is_tanglish = any(w in user_msg.lower() for w in tanglish_markers)
 
@@ -87,23 +99,81 @@ class GroqLLMClient:
             m_ord = re.search(r"ORD-\d+", user_msg, re.IGNORECASE)
             order_number = m_ord.group(0).upper() if m_ord else None
 
-            if any(w in msg_lower for w in ["human", "manager", "supervisor", "agent", "executive", "useless", "worst", "மனிதா", "அதிகாரி"]):
+            if any(
+                w in msg_lower
+                for w in [
+                    "human",
+                    "manager",
+                    "supervisor",
+                    "agent",
+                    "executive",
+                    "useless",
+                    "worst",
+                    "மனிதா",
+                    "அதிகாரி",
+                ]
+            ):
                 intent = "escalate"
-            elif any(w in msg_lower for w in ["policy", "window", "timeline", "cod", "limit", "damage", "rules", "cancel", "நாட்கள்", "விதிகள்", "ரத்து"]):
+            elif any(
+                w in msg_lower
+                for w in [
+                    "policy",
+                    "window",
+                    "timeline",
+                    "cod",
+                    "limit",
+                    "damage",
+                    "rules",
+                    "cancel",
+                    "நாட்கள்",
+                    "விதிகள்",
+                    "ரத்து",
+                ]
+            ):
                 intent = "policy_question"
             elif any(w in msg_lower for w in ["refund", "return", "ரீஃபண்ட்", "திருப்பி"]):
                 intent = "refund_request"
-            elif order_number or any(w in msg_lower for w in ["track", "status", "delivery", "parcel", "ஆர்டர்", "பார்சல்", "varum"]):
+            elif order_number or any(
+                w in msg_lower for w in ["track", "status", "delivery", "parcel", "ஆர்டர்", "பார்சல்", "varum"]
+            ):
                 intent = "order_status"
-            elif any(w in msg_lower for w in ["kurti", "saree", "headphone", "speaker", "audio", "price", "buy", "specs", "available", "bottle", "fryer", "shoe", "watch", "dress", "விலை", "புடவை"]):
+            elif any(
+                w in msg_lower
+                for w in [
+                    "kurti",
+                    "saree",
+                    "headphone",
+                    "speaker",
+                    "audio",
+                    "price",
+                    "buy",
+                    "specs",
+                    "available",
+                    "bottle",
+                    "fryer",
+                    "shoe",
+                    "watch",
+                    "dress",
+                    "விலை",
+                    "புடவை",
+                ]
+            ):
                 intent = "product_question"
-            elif any(w in msg_lower for w in ["hi", "hello", "hey", "vanakkam", "thanks", "thank", "வணக்கம்", "நன்றி"]):
+            elif any(
+                w in msg_lower for w in ["hi", "hello", "hey", "vanakkam", "thanks", "thank", "வணக்கம்", "நன்றி"]
+            ):
                 intent = "smalltalk"
             else:
                 intent = "policy_question" if "?" in user_msg else "smalltalk"
 
             category = None
-            for cat in ["Traditional & Ethnic Wear", "Electronics & Audio", "Kitchen & Home Appliances", "Footwear & Accessories", "Pooja & Spiritual Items"]:
+            for cat in [
+                "Traditional & Ethnic Wear",
+                "Electronics & Audio",
+                "Kitchen & Home Appliances",
+                "Footwear & Accessories",
+                "Pooja & Spiritual Items",
+            ]:
                 if any(w in msg_lower for w in cat.lower().split()):
                     category = cat
                     break
@@ -204,7 +274,9 @@ class GroqLLMClient:
                 if lang == "ta":
                     reply = f"உங்கள் ஆர்டர் {ord_num} இன்று டெலிவரிக்காக வெளியே சென்றுள்ளது. குறிப்பு: {note}."
                 elif lang == "tanglish":
-                    reply = f"Unga order {ord_num} innaiku out for delivery la irukku. Courier partner: {note}."
+                    reply = (
+                        f"Unga order {ord_num} innaiku out for delivery la irukku. Courier partner: {note}."
+                    )
                 else:
                     reply = f"Your order {ord_num} is out for delivery today. Details: {note}."
             elif ord_st == "cancelled":
@@ -292,7 +364,9 @@ class GroqLLMClient:
 
         elif status == "escalated":
             if lang == "ta":
-                reply = "உங்கள் உரையாடல் எங்கள் வாடிக்கையாளர் சேவை மேற்பார்வையாளருக்கு மாற்றப்பட்டுள்ளது. விரைவில் ஒரு அதிகாரி இணைவார்."
+                reply = (
+                    "உங்கள் உரையாடல் எங்கள் வாடிக்கையாளர் சேவை மேற்பார்வையாளருக்கு மாற்றப்பட்டுள்ளது. விரைவில் ஒரு அதிகாரி இணைவார்."
+                )
             elif lang == "tanglish":
                 reply = "Unga chat customer support executive kooda connect aayiduchu. Oru agent seekiram join pannuvaanga."
             else:
@@ -387,7 +461,9 @@ class GroqLLMClient:
                         raw_response=data,
                     )
                 elif resp.status_code == 401:
-                    logger.error("Groq API returned HTTP 401 Unauthorized (Invalid API Key). Falling back to dev simulation.")
+                    logger.error(
+                        "Groq API returned HTTP 401 Unauthorized (Invalid API Key). Falling back to dev simulation."
+                    )
                     return self._simulate_dev_completion(messages, model, response_format)
                 else:
                     error_msg = f"Groq API returned HTTP {resp.status_code}: {resp.text}"

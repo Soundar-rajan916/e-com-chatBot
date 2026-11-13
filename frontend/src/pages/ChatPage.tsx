@@ -21,24 +21,26 @@ export const ChatPage: React.FC = () => {
     retryLastMessage,
   } = useChat(selectedCustomer);
 
-  useEffect(() => {
-    async function loadCustomers() {
-      try {
-        setLoadingCustomers(true);
-        const data = await getDemoCustomers();
-        setCustomers(data);
-        if (data.length > 0) {
-          setSelectedCustomer(data[0]);
-        }
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : 'Failed loading demo customers.';
-        setCustomerError(msg);
-      } finally {
-        setLoadingCustomers(false);
+  const loadCustomers = React.useCallback(async () => {
+    try {
+      setLoadingCustomers(true);
+      setCustomerError(null);
+      const data = await getDemoCustomers();
+      setCustomers(data);
+      if (data.length > 0) {
+        setSelectedCustomer(data[0]);
       }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed loading demo customers.';
+      setCustomerError(msg);
+    } finally {
+      setLoadingCustomers(false);
     }
-    loadCustomers();
   }, []);
+
+  useEffect(() => {
+    loadCustomers();
+  }, [loadCustomers]);
 
   return (
     <div className="chat-container">
@@ -51,8 +53,34 @@ export const ChatPage: React.FC = () => {
         />
 
         {customerError && (
-          <div style={{ padding: '0.75rem 1rem', background: '#fef2f2', color: '#991b1b', fontSize: '0.875rem' }}>
-            {customerError}
+          <div
+            style={{
+              padding: '0.75rem 1rem',
+              background: '#fef2f2',
+              color: '#991b1b',
+              fontSize: '0.875rem',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            <span>{customerError}</span>
+            <button
+              type="button"
+              onClick={loadCustomers}
+              style={{
+                background: '#dc2626',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '4px',
+                padding: '0.25rem 0.75rem',
+                cursor: 'pointer',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+              }}
+            >
+              Retry
+            </button>
           </div>
         )}
 

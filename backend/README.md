@@ -135,3 +135,58 @@ ruff format --check app scripts tests
    - When a customer searches with narrow filters (e.g. category and strict budget) that return 0 items, the product retriever automatically relaxes the filters, re-executes search, and records `filters_relaxed: True` in the audit trace.
 4. **Prompt Injection Defense**:
    - Retrieved chunks and customer messages are passed strictly as unverified data to the LLM generator prompt with instructions prohibiting execution of instructions embedded in data snippets.
+5. **Customer Chat Polling vs WebSockets**:
+   - Customer chat updates (agent responses, refund decisions) use lightweight interval polling (`GET /sessions/{session_id}/messages?after=&customer_id=`) every 3 seconds while `requires_human=true`.
+   - Polling was chosen for phase simplicity, channel agnosticism (works identically across mobile browsers and web chat with zero persistent connection state), and frictionless load balancing across stateless containers without requiring sticky sessions or a Redis pub/sub cluster for socket multiplexing. Future upgrade path to Server-Sent Events (SSE) or WebSockets is prepared without changing message schemas.
+
+---
+
+## 8. Phase 3: Admin Console & Escalations
+
+### A. Environment Configuration
+Added to `backend/.env` (see `backend/.env.example`):
+```env
+ADMIN_SESSION_HOURS=12
+ESCALATION_SLA_MINUTES=15
+REFUND_AUTO_APPROVE_LIMIT_INR=2000
+```
+
+### B. Staff Credentials & CLI
+Create staff users via CLI:
+```powershell
+python -m scripts.create_admin --email agent.chennai@example.com --name "Chennai Agent" --role agent
+```
+
+Default Dev Demo Credentials (seeded automatically when `APP_ENV=dev`):
+- **Admin**: `admin@example.com` / `AdminPass123!`
+- **Agent**: `agent@example.com` / `AgentPass123!`
+
+### C. Case Rules & State Transitions
+Escalations follow deterministic rules enforced in `app/services/cases.py`:
+
+| Action | Allowed Roles | Pre-conditions | Next State | Concurrency / Audit |
+| :--- | :--- | :--- | :--- | :--- |
+| **Take Case** | Agent, Admin | Case is `open` or assigned to caller (Admin can reassign with force) | `in_progress` | `version + 1`, `EscalationEvent(assigned)` |
+| **Release Case** | Assignee, Admin | Case is `in_progress` and assigned to caller | `open` | `assigned_to = NULL`, `version + 1` |
+| **Reply Customer** | Assignee, Admin | Case is `in_progress` | `in_progress` | Inserts `ChatMessage(role="agent")` |
+| **Add Note** | Any Agent/Admin | Any active or resolved case | unchanged | Inserts `EscalationNote` |
+| **Change Priority** | Assignee, Admin | Any active case (`low`, `normal`, `high`) | unchanged | `version + 1`, `EscalationEvent(priority_changed)` |
+| **Approve Refund** | Assignee, Admin | Linked refund `pending_approval` | `processed` | `SELECT FOR UPDATE`, `payout()`, bilingual notify |
+| **Reject Refund** | Assignee, Admin | Linked refund `pending_approval` + reason | `rejected` | `SELECT FOR UPDATE`, bilingual notify with reason |
+| **Resolve Case** | Assignee, Admin | Case active; refund NOT `pending_approval`; resolution note | `resolved` | `resolved_at`, `version + 1` |
+| **Reopen Case** | Any Agent/Admin | Case is `resolved` | `in_progress` (if assignee) else `open` | `version + 1`, clears `resolved_at` |
+
+### D. Live End-to-End Smoke Test
+Run the deterministic verification script:
+```powershell
+# In Docker:
+docker exec ecom_backend python scripts/smoke_admin.py
+
+# Or on host with running server:
+python scripts/smoke_admin.py
+```
+Validates:
+1. High-value refund escalation ($\gt$ ₹2,000) through take, agent reply, customer polling ("Support executive"), payout execution, bilingual notification, and resolution.
+2. Escalation deduplication per chat session and refund rejection with bilingual notification.
+3. Concurrency control on case take (one wins with 200, one receives 409).
+4. Concurrency control on refund approval (prevents double payout).

@@ -22,4 +22,5 @@ async def chat_endpoint(
         session_id=request.session_id,
         text=request.message,
         channel="web",
+        input_mode=request.input_mode,
     )

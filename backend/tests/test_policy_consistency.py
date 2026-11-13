@@ -18,9 +18,18 @@ def test_policy_files_consistency():
     assert f"{settings.RETURN_WINDOW_DAYS} நாட்கள்" in ta_policy
 
     # Verify refund auto-approval limit matches config (default 2000 INR)
-    limit_str = f"{settings.REFUND_AUTO_APPROVE_LIMIT_INR:,}"
-    assert f"INR {limit_str}" in en_policy or f"₹{limit_str}" in en_policy
-    assert f"INR {limit_str}" in ta_policy or f"₹{limit_str}" in ta_policy
+    limit_int = int(settings.REFUND_AUTO_APPROVE_LIMIT_INR)
+    limit_str = f"{limit_int:,}"
+    assert (
+        f"INR {limit_str}" in en_policy
+        or f"₹{limit_str}" in en_policy
+        or f"INR {settings.REFUND_AUTO_APPROVE_LIMIT_INR:,}" in en_policy
+    )
+    assert (
+        f"INR {limit_str}" in ta_policy
+        or f"₹{limit_str}" in ta_policy
+        or f"INR {settings.REFUND_AUTO_APPROVE_LIMIT_INR:,}" in ta_policy
+    )
 
     # Verify key operational headings are present
     expected_headings = [

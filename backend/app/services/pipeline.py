@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Settings, get_settings
-from app.models import ChatMessage, ChatSession, Customer, Escalation, Trace
+from app.models import ChatMessage, ChatSession, Customer, Escalation, EscalationEvent, Trace
 from app.prompts import FALLBACK_REPLY_EN_TA
 from app.schemas import ChatResponse, RouterOutput, SourceItem
 from app.services.generator import generate_response
@@ -26,12 +26,71 @@ from app.services.tools import (
 logger = logging.getLogger("app.services.pipeline")
 
 
+async def record_escalation(
+    session: AsyncSession,
+    session_id: UUID,
+    customer_id: UUID,
+    reason: str,
+    reason_type: str,
+    priority: str = "normal",
+    refund_id: UUID | None = None,
+) -> Escalation:
+    """
+    Idempotently find an active escalation for this session or create a new one.
+    Guarantees at most ONE active (open or in_progress) escalation per session.
+    Writes a 'created' audit event when a new escalation is created.
+    """
+    esc_stmt = (
+        select(Escalation)
+        .where(
+            Escalation.session_id == session_id,
+            Escalation.status.in_(["open", "in_progress"]),
+        )
+        .with_for_update()
+    )
+    existing = (await session.execute(esc_stmt)).scalar_one_or_none()
+
+    if existing:
+        if priority == "high":
+            existing.priority = "high"
+        if refund_id:
+            existing.refund_id = refund_id
+        if reason_type == "refund_pending_approval":
+            existing.reason_type = reason_type
+        return existing
+
+    new_esc = Escalation(
+        session_id=session_id,
+        customer_id=customer_id,
+        reason=reason,
+        reason_type=reason_type,
+        status="open",
+        priority=priority,
+        refund_id=refund_id,
+        version=1,
+    )
+    session.add(new_esc)
+    await session.flush()
+
+    audit_event = EscalationEvent(
+        escalation_id=new_esc.id,
+        actor_type="system",
+        actor_id=None,
+        action="created",
+        detail={"reason_type": reason_type, "priority": priority},
+    )
+    session.add(audit_event)
+    await session.flush()
+    return new_esc
+
+
 async def handle_message(
     session: AsyncSession,
     customer_id: UUID,
     session_id: UUID | None,
     text: str,
     channel: str = "web",
+    input_mode: str = "text",
     llm_client: GroqLLMClient | None = None,
     settings: Settings | None = None,
 ) -> ChatResponse:
@@ -74,9 +133,67 @@ async def handle_message(
             raise HTTPException(status_code=403, detail="Session does not belong to this customer.")
 
     # Step 2: Store user message & load history
-    user_msg = ChatMessage(session_id=chat_session.id, role="user", content=cleaned_text)
+    user_msg = ChatMessage(
+        session_id=chat_session.id,
+        role="user",
+        content=cleaned_text,
+        input_mode=input_mode,
+    )
     session.add(user_msg)
     await session.flush()
+
+    # CHECK HUMAN HANDLING: If an escalation is already in_progress, hold the customer without LLM calls
+    in_progress_stmt = select(Escalation).where(
+        Escalation.session_id == chat_session.id,
+        Escalation.status == "in_progress",
+    )
+    in_progress_esc = (await session.execute(in_progress_stmt)).scalar_one_or_none()
+
+    if in_progress_esc:
+        holding_reply = (
+            "A support executive is handling your request and will reply here. / "
+            "ஒரு ஆதரவு நிர்வாகி உங்கள் கோரிக்கையைக் கவனித்து இங்கே பதிலளிப்பார்."
+        )
+        assistant_msg = ChatMessage(
+            session_id=chat_session.id,
+            role="assistant",
+            content=holding_reply,
+            input_mode="text",
+        )
+        session.add(assistant_msg)
+        await session.flush()
+
+        latency_ms = int((time.monotonic() - pipeline_start_time) * 1000)
+        trace = Trace(
+            session_id=chat_session.id,
+            user_message_id=user_msg.id,
+            intent="human_handling",
+            language="en",
+            router_raw={"intent": "human_handling", "escalation_id": str(in_progress_esc.id)},
+            tool_calls=[],
+            final_answer=holding_reply,
+            models={},
+            prompt_tokens=0,
+            completion_tokens=0,
+            cost_inr=Decimal("0.0000"),
+            latency_ms=latency_ms,
+            error=None,
+        )
+        session.add(trace)
+        await session.commit()
+        await session.refresh(trace)
+
+        return ChatResponse(
+            session_id=chat_session.id,
+            reply=holding_reply,
+            intent="human_handling",
+            language="en",
+            requires_human=True,
+            trace_id=trace.id,
+            sources=[],
+            suggested_actions=[],
+            structured_output=None,
+        )
 
     history_stmt = (
         select(ChatMessage)
@@ -121,38 +238,25 @@ async def handle_message(
             language="en",
             order_number=None,
             refund_reason=None,
+            search_query=None,
+            category=None,
+            max_price_inr=None,
         )
-        router_raw = {"error": str(exc)}
-        pipeline_error = f"Router fatal exception: {exc}"
+        router_raw = {"intent": "escalate", "error": str(exc)}
+        pipeline_error = f"Router fatal error: {exc}"
 
     intent = router_output.intent
     language = router_output.language
     order_number = router_output.order_number
     refund_reason = router_output.refund_reason
 
-    # Step 4: HANDLERS (deterministic)
-    tool_result: dict[str, Any] = {}
+    # Step 4: TOOLS & RAG RETRIEVAL
+    tool_result: dict[str, Any]
 
     if intent == "order_status":
         if not order_number:
-            orders_res = await list_customer_orders(session, customer_id)
-            if orders_res.get("status") == "found_orders":
-                tool_result = orders_res
-                tool_calls.append(
-                    {
-                        "tool": "list_customer_orders",
-                        "input": {"customer_id": str(customer_id)},
-                        "output": tool_result,
-                    }
-                )
-            else:
-                tool_result = {
-                    "status": "missing_order_number",
-                    "message": "Order number was not specified. Ask customer for order number.",
-                }
-                tool_calls.append(
-                    {"tool": "order_status", "input": {"order_number": None}, "output": tool_result}
-                )
+            tool_result = await list_customer_orders(session, customer_id, limit=5)
+            tool_calls.append({"tool": "list_customer_orders", "input": {"limit": 5}, "output": tool_result})
         else:
             tool_result = await get_order_status(session, customer_id, order_number)
             tool_calls.append(
@@ -189,6 +293,7 @@ async def handle_message(
                     order_number=order_number,
                     refund_reason=refund_reason,
                     auto_approve_limit=cfg.REFUND_AUTO_APPROVE_LIMIT_INR,
+                    session_id=chat_session.id,
                 )
                 tool_result = refund_res
                 requires_human = refund_res.get("requires_human", False)
@@ -226,13 +331,17 @@ async def handle_message(
         response_sources.extend(sources)
 
     elif intent == "escalate":
-        escalation = Escalation(
-            session_id=chat_session.id,
-            reason=f"Customer request / bot escalation. Last input: {cleaned_text[:200]}",
-            status="open",
+        r_type = (
+            "router_fallback" if pipeline_error and "router" in pipeline_error.lower() else "user_requested"
         )
-        session.add(escalation)
-        await session.flush()
+        escalation = await record_escalation(
+            session=session,
+            session_id=chat_session.id,
+            customer_id=customer_id,
+            reason=f"Customer request / bot escalation. Last input: {cleaned_text[:200]}",
+            reason_type=r_type,
+            priority="normal",
+        )
         requires_human = True
         tool_result = {
             "status": "escalated",
@@ -282,16 +391,22 @@ async def handle_message(
 
         # Escalate on fatal generator failure only if not already escalated this turn
         if not any(call.get("tool") == "create_escalation" for call in tool_calls):
-            escalation = Escalation(
+            await record_escalation(
+                session=session,
                 session_id=chat_session.id,
+                customer_id=customer_id,
                 reason=f"LLM failure fallback: {exc}",
-                status="open",
+                reason_type="llm_failure",
+                priority="normal",
             )
-            session.add(escalation)
-            await session.flush()
 
     # Step 6: Store Assistant message
-    assistant_msg = ChatMessage(session_id=chat_session.id, role="assistant", content=final_reply)
+    assistant_msg = ChatMessage(
+        session_id=chat_session.id,
+        role="assistant",
+        content=final_reply,
+        input_mode="text",
+    )
     session.add(assistant_msg)
     await session.flush()
 

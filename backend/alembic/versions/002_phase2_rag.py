@@ -5,12 +5,13 @@ Revises: 001_initial
 Create Date: 2026-11-12 14:00:00.000000
 
 """
+
 from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
+from alembic import op
 from app.config import get_settings
 
 revision: str = "002_phase2"
