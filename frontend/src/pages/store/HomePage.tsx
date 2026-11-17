@@ -1,9 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getBaseUrl, getCategories, getProducts, getStorePolicy } from '../../api/client';
+import { getCategories, getProducts, getStorePolicy } from '../../api/client';
 import { CategoryItem, ProductItem, StorePolicy } from '../../api/types';
 import { useCart } from '../../context/CartContext';
 import { useSupportWidget } from '../../hooks/useSupportWidget';
+import {
+  CATEGORY_PHOTOS,
+  HERO_SHOWCASE_PHOTOS,
+  PROMO_BANNER_PHOTOS,
+  TESTIMONIAL_AVATARS,
+  getProductImageUrl,
+  handleProductImageError,
+} from '../../utils/productImages';
 
 export const HomePage: React.FC = () => {
   const [categories, setCategories] = useState<CategoryItem[]>([]);
@@ -51,14 +59,14 @@ export const HomePage: React.FC = () => {
 
   // Pastel Category Circular Shortcuts (matching reference image)
   const categoryShortcuts = [
-    { name: 'Handloom & Silks', cat: 'Textiles', icon: '👗', bg: '#fce4ec', border: '#f8bbd0' },
-    { name: 'Cookware', cat: 'Cookware', icon: '🍳', bg: '#e1f5fe', border: '#b3e5fc' },
-    { name: 'Spices & Masalas', cat: 'Spices', icon: '🌶️', bg: '#ffe0b2', border: '#ffcc80' },
-    { name: 'Heritage Grains', cat: 'Groceries', icon: '🌾', bg: '#e8f5e9', border: '#c8e6c9' },
-    { name: 'Filter Coffee', cat: 'Beverages', icon: '☕', bg: '#fff3e0', border: '#ffe0b2' },
-    { name: 'Traditional Sweets', cat: 'Sweets', icon: '🍬', bg: '#fff8e1', border: '#ffecb3' },
-    { name: 'Artisan Crafts', cat: 'Handicrafts', icon: '🏺', bg: '#f3e5f5', border: '#e1bee7' },
-    { name: 'View All', cat: '', icon: '🔲', bg: '#f5f5f5', border: '#e0e0e0' },
+    { name: 'Handloom & Silks', cat: 'Textiles', image: CATEGORY_PHOTOS['Handloom & Silks'], bg: '#fce4ec', border: '#f8bbd0' },
+    { name: 'Cookware', cat: 'Cookware', image: CATEGORY_PHOTOS['Cookware'], bg: '#e1f5fe', border: '#b3e5fc' },
+    { name: 'Spices & Masalas', cat: 'Spices', image: CATEGORY_PHOTOS['Spices & Masalas'], bg: '#ffe0b2', border: '#ffcc80' },
+    { name: 'Heritage Grains', cat: 'Groceries', image: CATEGORY_PHOTOS['Heritage Grains'], bg: '#e8f5e9', border: '#c8e6c9' },
+    { name: 'Filter Coffee', cat: 'Beverages', image: CATEGORY_PHOTOS['Filter Coffee'], bg: '#fff3e0', border: '#ffe0b2' },
+    { name: 'Traditional Sweets', cat: 'Sweets', image: CATEGORY_PHOTOS['Traditional Sweets'], bg: '#fff8e1', border: '#ffecb3' },
+    { name: 'Artisan Crafts', cat: 'Handicrafts', image: CATEGORY_PHOTOS['Artisan Crafts'], bg: '#f3e5f5', border: '#e1bee7' },
+    { name: 'View All', cat: '', image: CATEGORY_PHOTOS['View All'], bg: '#f5f5f5', border: '#e0e0e0' },
   ].map((item) => {
     const found = categories.find((c) => c.category.toLowerCase() === item.cat.toLowerCase());
     return { ...item, count: found?.count };
@@ -113,19 +121,35 @@ export const HomePage: React.FC = () => {
               {/* Showcase Image Montage Container */}
               <div className="viva-hero-montage">
                 <div className="montage-item primary">
-                  <span className="montage-emoji">🥻</span>
+                  <img
+                    src={HERO_SHOWCASE_PHOTOS.silkSaree}
+                    alt="Kanchipuram Silk"
+                    className="montage-img"
+                  />
                   <span className="montage-caption">Kanchipuram Silk</span>
                 </div>
                 <div className="montage-item secondary">
-                  <span className="montage-emoji">🍳</span>
+                  <img
+                    src={HERO_SHOWCASE_PHOTOS.cookware}
+                    alt="Soapstone Cookware"
+                    className="montage-img"
+                  />
                   <span className="montage-caption">Soapstone Cookware</span>
                 </div>
                 <div className="montage-item tertiary">
-                  <span className="montage-emoji">☕</span>
+                  <img
+                    src={HERO_SHOWCASE_PHOTOS.filterCoffee}
+                    alt="Filter Coffee"
+                    className="montage-img"
+                  />
                   <span className="montage-caption">Filter Coffee</span>
                 </div>
                 <div className="montage-item quaternary">
-                  <span className="montage-emoji">🌶️</span>
+                  <img
+                    src={HERO_SHOWCASE_PHOTOS.nativeSpices}
+                    alt="Native Spices"
+                    className="montage-img"
+                  />
                   <span className="montage-caption">Native Spices</span>
                 </div>
               </div>
@@ -155,7 +179,12 @@ export const HomePage: React.FC = () => {
                 className="category-circle-avatar"
                 style={{ backgroundColor: c.bg, borderColor: c.border }}
               >
-                <span className="category-circle-icon">{c.icon}</span>
+                <img
+                  src={c.image}
+                  alt={c.name}
+                  className="category-circle-img"
+                  loading="lazy"
+                />
               </div>
               <span className="category-circle-name">{c.name}</span>
             </Link>
@@ -185,7 +214,7 @@ export const HomePage: React.FC = () => {
         ) : (
           <div className="viva-products-grid">
             {(featuredProducts || []).slice(0, 8).map((p, idx) => {
-              const imgUrl = `${getBaseUrl()}/products/${p.id}/image.svg`;
+              const imgUrl = getProductImageUrl(p);
               const discountPercent = idx % 2 === 0 ? '-20%' : '-15%';
               const originalPrice = Math.round(Number(p.price_inr) * 1.25);
 
@@ -196,7 +225,12 @@ export const HomePage: React.FC = () => {
 
                   {/* Product Image Link */}
                   <Link to={`/products/${p.id}`} className="viva-product-image-wrap">
-                    <img src={imgUrl} alt={p.title} className="viva-product-img" />
+                    <img
+                      src={imgUrl}
+                      alt={p.title}
+                      className="viva-product-img"
+                      onError={(e) => handleProductImageError(e, p.id)}
+                    />
                     {p.stock <= 5 && (
                       <span className="viva-stock-tag">Only {p.stock} left</span>
                     )}
@@ -271,7 +305,11 @@ export const HomePage: React.FC = () => {
               </Link>
             </div>
             <div className="promo-visual">
-              <span className="promo-emoji">🥻</span>
+              <img
+                src={PROMO_BANNER_PHOTOS.handloom}
+                alt="Fresh Handloom Weaves"
+                className="promo-img"
+              />
             </div>
           </div>
 
@@ -285,7 +323,11 @@ export const HomePage: React.FC = () => {
               </Link>
             </div>
             <div className="promo-visual">
-              <span className="promo-emoji">🍳</span>
+              <img
+                src={PROMO_BANNER_PHOTOS.cookware}
+                alt="Pure Soapstone Cookware"
+                className="promo-img"
+              />
             </div>
           </div>
 
@@ -299,7 +341,11 @@ export const HomePage: React.FC = () => {
               </Link>
             </div>
             <div className="promo-visual">
-              <span className="promo-emoji">🌶️</span>
+              <img
+                src={PROMO_BANNER_PHOTOS.spices}
+                alt="Native Spices"
+                className="promo-img"
+              />
             </div>
           </div>
         </div>
@@ -319,7 +365,11 @@ export const HomePage: React.FC = () => {
           {/* Review 1 */}
           <div className="viva-testimonial-card">
             <div className="testimonial-user-row">
-              <div className="testimonial-avatar">👩</div>
+              <img
+                src={TESTIMONIAL_AVATARS.sarah}
+                alt="Sarah J."
+                className="testimonial-avatar-img"
+              />
               <div>
                 <strong className="testimonial-name">Sarah J.</strong>
                 <span className="verified-badge">✓ Verified Buyer</span>
@@ -335,7 +385,11 @@ export const HomePage: React.FC = () => {
           {/* Review 2 */}
           <div className="viva-testimonial-card">
             <div className="testimonial-user-row">
-              <div className="testimonial-avatar">👨</div>
+              <img
+                src={TESTIMONIAL_AVATARS.michael}
+                alt="Michael T."
+                className="testimonial-avatar-img"
+              />
               <div>
                 <strong className="testimonial-name">Michael T.</strong>
                 <span className="verified-badge">✓ Verified Buyer</span>
@@ -351,7 +405,11 @@ export const HomePage: React.FC = () => {
           {/* Review 3 */}
           <div className="viva-testimonial-card">
             <div className="testimonial-user-row">
-              <div className="testimonial-avatar">👩</div>
+              <img
+                src={TESTIMONIAL_AVATARS.priya}
+                alt="Priya K."
+                className="testimonial-avatar-img"
+              />
               <div>
                 <strong className="testimonial-name">Priya K.</strong>
                 <span className="verified-badge">✓ Verified Buyer</span>

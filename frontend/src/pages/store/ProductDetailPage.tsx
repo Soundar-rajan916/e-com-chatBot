@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { getBaseUrl, getProduct, getRelatedProducts } from '../../api/client';
+import { getProduct, getRelatedProducts } from '../../api/client';
 import { ProductItem } from '../../api/types';
 import { useCart } from '../../context/CartContext';
 import { useSupportWidget } from '../../hooks/useSupportWidget';
+import { getProductImageUrl, handleProductImageError } from '../../utils/productImages';
 
 export const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -67,7 +68,7 @@ export const ProductDetailPage: React.FC = () => {
     );
   }
 
-  const imgUrl = `${getBaseUrl()}/products/${product.id}/image.svg`;
+  const imgUrl = getProductImageUrl(product);
 
   return (
     <div className="product-detail-page">
@@ -82,7 +83,12 @@ export const ProductDetailPage: React.FC = () => {
       <div className="product-detail-container">
         {/* Left: Product Image */}
         <div className="detail-image-box">
-          <img src={imgUrl} alt={product.title} className="detail-main-img" />
+          <img
+            src={imgUrl}
+            alt={product.title}
+            className="detail-main-img"
+            onError={(e) => handleProductImageError(e, product.id)}
+          />
           <div className="image-sku-badge">SKU: {product.sku}</div>
         </div>
 
@@ -192,11 +198,16 @@ export const ProductDetailPage: React.FC = () => {
           <h2>Similar &amp; Complementary Products</h2>
           <div className="products-grid">
             {related.map((rp) => {
-              const rImgUrl = `${getBaseUrl()}/products/${rp.id}/image.svg`;
+              const rImgUrl = getProductImageUrl(rp);
               return (
                 <div key={rp.id} className="product-card">
                   <Link to={`/products/${rp.id}`} className="product-image-container">
-                    <img src={rImgUrl} alt={rp.title} className="product-card-img" />
+                    <img
+                      src={rImgUrl}
+                      alt={rp.title}
+                      className="product-card-img"
+                      onError={(e) => handleProductImageError(e, rp.id)}
+                    />
                   </Link>
                   <div className="product-card-body">
                     <span className="product-category-tag">{rp.category}</span>

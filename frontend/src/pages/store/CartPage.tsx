@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getBaseUrl } from '../../api/client';
 import { useCart } from '../../context/CartContext';
+import { getProductImageUrl, handleProductImageError } from '../../utils/productImages';
 
 export const CartPage: React.FC = () => {
   const { cart, isLoading, updateQuantity, removeItem, emptyCart } = useCart();
@@ -42,11 +42,20 @@ export const CartPage: React.FC = () => {
         {/* Cart items list */}
         <div className="cart-items-container">
           {cart.items.map((item) => {
-            const imgUrl = `${getBaseUrl()}/products/${item.product_id}/image.svg`;
+            const imgUrl = getProductImageUrl({
+              id: item.product_id,
+              sku: item.sku,
+              title: item.title,
+            });
             return (
               <div key={item.product_id} className="cart-item-row">
                 <div className="cart-item-img-box">
-                  <img src={imgUrl} alt={item.title} className="cart-item-img" />
+                  <img
+                    src={imgUrl}
+                    alt={item.title}
+                    className="cart-item-img"
+                    onError={(e) => handleProductImageError(e, item.product_id)}
+                  />
                 </div>
 
                 <div className="cart-item-info">

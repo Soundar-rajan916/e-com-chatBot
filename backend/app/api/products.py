@@ -25,33 +25,153 @@ logger = logging.getLogger("app.api.products")
 router = APIRouter(prefix="/products", tags=["products"])
 categories_router = APIRouter(tags=["products"])
 
-# Color palettes by category for SVG placeholder generation
-CATEGORY_PALETTES = {
-    "clothing": ("#4f46e5", "#818cf8", "👕"),
-    "electronics": ("#0369a1", "#38bdf8", "📱"),
-    "home & kitchen": ("#c2410c", "#fb923c", "🍳"),
-    "beauty & personal care": ("#be185d", "#f472b6", "✨"),
-    "books & media": ("#15803d", "#4ade80", "📚"),
-    "groceries": ("#047857", "#34d399", "🛒"),
-    "toys & baby": ("#b45309", "#fbbf24", "🧸"),
-    "sports & fitness": ("#0f766e", "#2dd4bf", "⚽"),
+# Color palettes and SVG vector art generators by category
+CATEGORY_CONFIG = {
+    "clothing": {
+        "color1": "#312e81",
+        "color2": "#4f46e5",
+        "svg_art": """<g transform="translate(170, 50)" fill="#ffffff">
+      <path d="M12 8 C25 4 35 4 48 8 L54 26 C44 30 16 30 6 26 Z" opacity="0.95" />
+      <path d="M6 26 L14 78 C24 82 36 82 46 78 L54 26 Z" opacity="0.85" />
+      <path d="M8 78 L12 88 C26 91 34 91 48 88 L52 78 Z" fill="#fbbf24" />
+      <line x1="20" y1="28" x2="25" y2="78" stroke="#ffffff" stroke-width="1.5" opacity="0.4" />
+      <line x1="30" y1="28" x2="33" y2="78" stroke="#ffffff" stroke-width="1.5" opacity="0.4" />
+      <line x1="40" y1="28" x2="41" y2="78" stroke="#ffffff" stroke-width="1.5" opacity="0.4" />
+    </g>""",
+    },
+    "sarees": {
+        "color1": "#831843",
+        "color2": "#be185d",
+        "svg_art": """<g transform="translate(165, 50)" fill="#ffffff">
+      <path d="M10 10 C25 5 45 5 60 10 L68 30 C50 34 20 34 2 30 Z" opacity="0.95" fill="#fef08a" />
+      <path d="M2 30 L12 82 C28 86 42 86 58 82 L68 30 Z" opacity="0.85" />
+      <path d="M6 80 L10 90 C30 94 40 94 60 90 L64 80 Z" fill="#fbbf24" />
+      <line x1="18" y1="32" x2="22" y2="82" stroke="#fbbf24" stroke-width="2" opacity="0.7" />
+      <line x1="32" y1="32" x2="35" y2="82" stroke="#fbbf24" stroke-width="2" opacity="0.7" />
+      <line x1="46" y1="32" x2="48" y2="82" stroke="#fbbf24" stroke-width="2" opacity="0.7" />
+    </g>""",
+    },
+    "textiles": {
+        "color1": "#831843",
+        "color2": "#be185d",
+        "svg_art": """<g transform="translate(165, 50)" fill="#ffffff">
+      <path d="M10 10 C25 5 45 5 60 10 L68 30 C50 34 20 34 2 30 Z" opacity="0.95" fill="#fef08a" />
+      <path d="M2 30 L12 82 C28 86 42 86 58 82 L68 30 Z" opacity="0.85" />
+      <path d="M6 80 L10 90 C30 94 40 94 60 90 L64 80 Z" fill="#fbbf24" />
+      <line x1="18" y1="32" x2="22" y2="82" stroke="#fbbf24" stroke-width="2" opacity="0.7" />
+    </g>""",
+    },
+    "electronics": {
+        "color1": "#0c4a6e",
+        "color2": "#0284c7",
+        "svg_art": """<g transform="translate(165, 50)" stroke="#ffffff" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 48 A 28 28 0 0 1 58 48" stroke-width="5" />
+      <rect x="6" y="42" width="12" height="28" rx="6" fill="#38bdf8" stroke="#ffffff" stroke-width="2" />
+      <rect x="52" y="42" width="12" height="28" rx="6" fill="#38bdf8" stroke="#ffffff" stroke-width="2" />
+      <path d="M2 56 Q 6 56 8 56" stroke="#fef08a" stroke-width="2" />
+    </g>""",
+    },
+    "home & kitchen": {
+        "color1": "#7c2d12",
+        "color2": "#c2410c",
+        "svg_art": """<g transform="translate(160, 52)" fill="#ffffff">
+      <ellipse cx="40" cy="22" rx="36" ry="10" fill="#fef08a" opacity="0.9" />
+      <path d="M6 22 C6 58 18 70 40 70 C62 70 74 58 74 22 Z" opacity="0.85" />
+      <ellipse cx="40" cy="19" rx="8" ry="4" fill="#fbbf24" />
+      <path d="M3 24 Q -3 32 3 38 Q 6 38 6 30" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" />
+      <path d="M77 24 Q 83 32 77 38 Q 74 38 74 30" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" />
+    </g>""",
+    },
+    "cookware": {
+        "color1": "#1c1917",
+        "color2": "#44403c",
+        "svg_art": """<g transform="translate(160, 52)" fill="#ffffff">
+      <ellipse cx="40" cy="22" rx="36" ry="10" fill="#fef08a" opacity="0.9" />
+      <path d="M6 22 C6 58 18 70 40 70 C62 70 74 58 74 22 Z" opacity="0.85" />
+      <ellipse cx="40" cy="19" rx="8" ry="4" fill="#fbbf24" />
+      <path d="M3 24 Q -3 32 3 38 Q 6 38 6 30" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" />
+      <path d="M77 24 Q 83 32 77 38 Q 74 38 74 30" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" />
+    </g>""",
+    },
+    "beauty & personal care": {
+        "color1": "#831843",
+        "color2": "#db2777",
+        "svg_art": """<g transform="translate(170, 50)" fill="#ffffff">
+      <rect x="25" y="8" width="10" height="14" rx="2" fill="#fbbf24" />
+      <rect x="27" y="2" width="6" height="8" rx="3" fill="#f472b6" />
+      <rect x="15" y="22" width="30" height="52" rx="6" opacity="0.9" />
+      <rect x="19" y="32" width="22" height="30" rx="2" fill="#ffffff" fill-opacity="0.25" />
+    </g>""",
+    },
+    "groceries": {
+        "color1": "#064e3b",
+        "color2": "#059669",
+        "svg_art": """<g transform="translate(160, 52)" fill="#ffffff">
+      <path d="M8 32 C8 62 22 72 40 72 C58 72 72 62 72 32 Z" opacity="0.85" />
+      <ellipse cx="40" cy="32" rx="32" ry="12" fill="#fef08a" opacity="0.9" />
+      <circle cx="34" cy="24" r="3" fill="#fb923c" />
+      <circle cx="44" cy="26" r="3.5" fill="#f87171" />
+      <circle cx="40" cy="18" r="2.5" fill="#34d399" />
+    </g>""",
+    },
+    "spices": {
+        "color1": "#7c2d12",
+        "color2": "#ea580c",
+        "svg_art": """<g transform="translate(160, 52)" fill="#ffffff">
+      <path d="M8 32 C8 62 22 72 40 72 C58 72 72 62 72 32 Z" opacity="0.85" />
+      <ellipse cx="40" cy="32" rx="32" ry="12" fill="#fef08a" opacity="0.9" />
+      <circle cx="34" cy="24" r="3.5" fill="#ef4444" />
+      <circle cx="46" cy="26" r="3" fill="#fbbf24" />
+      <circle cx="40" cy="18" r="3" fill="#10b981" />
+    </g>""",
+    },
+    "footwear": {
+        "color1": "#1e293b",
+        "color2": "#475569",
+        "svg_art": """<g transform="translate(155, 60)" fill="#ffffff">
+      <path d="M8 36 C18 36 28 16 48 16 C62 16 72 26 78 36 L84 42 C84 48 74 50 8 50 C4 50 4 42 8 36 Z" opacity="0.9" />
+      <rect x="6" y="48" width="80" height="7" rx="3" fill="#38bdf8" />
+      <path d="M34 18 L44 28" stroke="#ffffff" stroke-width="2" />
+      <path d="M42 18 L52 28" stroke="#ffffff" stroke-width="2" />
+    </g>""",
+    },
+    "beverages": {
+        "color1": "#451a03",
+        "color2": "#9a3412",
+        "svg_art": """<g transform="translate(165, 50)" fill="#ffffff">
+      <path d="M14 26 L20 72 C22 76 48 76 50 72 L56 26 Z" opacity="0.9" />
+      <ellipse cx="35" cy="26" rx="21" ry="8" fill="#fef08a" />
+      <path d="M26 16 Q 28 8 30 4" stroke="#ffffff" stroke-width="2" fill="none" opacity="0.7" stroke-linecap="round" />
+      <path d="M38 18 Q 40 10 42 6" stroke="#ffffff" stroke-width="2" fill="none" opacity="0.7" stroke-linecap="round" />
+    </g>""",
+    },
 }
-DEFAULT_PALETTE = ("#6d28d9", "#a78bfa", "🛍️")
+
+DEFAULT_CONFIG = {
+    "color1": "#064e3b",
+    "color2": "#0f766e",
+    "svg_art": """<g transform="translate(165, 50)" fill="#ffffff">
+    <rect x="10" y="24" width="50" height="52" rx="8" opacity="0.9" />
+    <path d="M22 24 C22 8 48 8 48 24" fill="none" stroke="#fef08a" stroke-width="4" stroke-linecap="round" />
+    <path d="M28 44 L42 44" stroke="#064e3b" stroke-width="2.5" opacity="0.5" stroke-linecap="round" />
+  </g>""",
+}
 
 
-def get_category_palette(category: str) -> tuple[str, str, str]:
+def get_category_config(category: str) -> dict[str, str]:
     cat_lower = category.lower().strip()
-    for key, val in CATEGORY_PALETTES.items():
+    for key, val in CATEGORY_CONFIG.items():
         if key in cat_lower:
             return val
-    # Stable fallback based on category string hash
-    h = int(hashlib.md5(category.encode("utf-8")).hexdigest()[:4], 16)
-    palettes = list(CATEGORY_PALETTES.values())
-    return palettes[h % len(palettes)]
+    return DEFAULT_CONFIG
 
 
 def generate_product_svg(product_id: str, name: str, category: str, price: Decimal) -> str:
-    color1, color2, icon = get_category_palette(category)
+    cfg = get_category_config(category)
+    color1 = cfg["color1"]
+    color2 = cfg["color2"]
+    svg_art = cfg["svg_art"]
+
     safe_name = html.escape(name[:30] + ("..." if len(name) > 30 else ""))
     safe_category = html.escape(category.upper())
     safe_price = f"₹{price:,.2f}"
@@ -63,12 +183,12 @@ def generate_product_svg(product_id: str, name: str, category: str, price: Decim
       <stop offset="100%" stop-color="{color2}" />
     </linearGradient>
   </defs>
-  <rect width="400" height="300" fill="url(#grad_{product_id})" rx="12" />
-  <rect x="20" y="20" width="360" height="260" fill="#ffffff" fill-opacity="0.1" rx="8" />
-  <text x="200" y="110" font-family="system-ui, sans-serif" font-size="54" text-anchor="middle">{icon}</text>
-  <text x="200" y="160" font-family="system-ui, sans-serif" font-size="14" font-weight="600" fill="#ffffff" fill-opacity="0.85" text-anchor="middle" letter-spacing="1.5">{safe_category}</text>
-  <text x="200" y="195" font-family="system-ui, sans-serif" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">{safe_name}</text>
-  <text x="200" y="235" font-family="system-ui, sans-serif" font-size="20" font-weight="800" fill="#fef08a" text-anchor="middle">{safe_price}</text>
+  <rect width="400" height="300" fill="url(#grad_{product_id})" rx="14" />
+  <rect x="16" y="16" width="368" height="268" fill="#ffffff" fill-opacity="0.08" rx="10" />
+  {svg_art}
+  <text x="200" y="165" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#ffffff" fill-opacity="0.85" text-anchor="middle" letter-spacing="1.5">{safe_category}</text>
+  <text x="200" y="198" font-family="system-ui, sans-serif" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">{safe_name}</text>
+  <text x="200" y="238" font-family="system-ui, sans-serif" font-size="20" font-weight="800" fill="#fef08a" text-anchor="middle">{safe_price}</text>
 </svg>"""
 
 

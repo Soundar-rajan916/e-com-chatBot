@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 200" width="100%" height="100%">
+  <defs>
+    <radialGradient id="stoneBody" cx="40%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#52525b" />
+      <stop offset="60%" stop-color="#27272a" />
+      <stop offset="100%" stop-color="#18181b" />
+    </radialGradient>
+    <linearGradient id="brassHandle" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="50%" stop-color="#d97706" />
+      <stop offset="100%" stop-color="#92400e" />
+    </linearGradient>
+  </defs>
+  <rect width="300" height="200" fill="#f4f4f5" rx="12" />
+  <ellipse cx="150" cy="165" rx="90" ry="16" fill="#000000" opacity="0.2" />
+  <path d="M45 90 C30 90 25 110 40 120 C50 125 55 115 50 100" fill="none" stroke="url(#brassHandle)" stroke-width="7" stroke-linecap="round" />
+  <path d="M255 90 C270 90 275 110 260 120 C250 125 245 115 250 100" fill="none" stroke="url(#brassHandle)" stroke-width="7" stroke-linecap="round" />
+  <path d="M50 85 C50 155 80 165 150 165 C220 165 250 155 250 85 Z" fill="url(#stoneBody)" />
+  <ellipse cx="150" cy="85" rx="100" ry="24" fill="#3f3f46" stroke="#27272a" stroke-width="2" />
+  <ellipse cx="150" cy="85" rx="88" ry="18" fill="#18181b" />
+  <path d="M130 65 Q135 45 145 35 Q150 25 140 15" fill="none" stroke="#a1a1aa" stroke-width="2" opacity="0.4" stroke-linecap="round" />
+  <path d="M165 60 Q175 40 168 30 Q160 20 170 10" fill="none" stroke="#a1a1aa" stroke-width="2" opacity="0.4" stroke-linecap="round" />
+</svg>

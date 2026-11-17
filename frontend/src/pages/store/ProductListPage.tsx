@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { getBaseUrl, getCategories, getProducts } from '../../api/client';
+import { getCategories, getProducts } from '../../api/client';
 import { CategoryItem, ProductItem } from '../../api/types';
 import { useCart } from '../../context/CartContext';
 import { useSupportWidget } from '../../hooks/useSupportWidget';
+import { getProductImageUrl, handleProductImageError } from '../../utils/productImages';
 
 export const ProductListPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -179,11 +180,16 @@ export const ProductListPage: React.FC = () => {
             <>
               <div className="products-grid">
                 {products.map((p) => {
-                  const imgUrl = `${getBaseUrl()}/products/${p.id}/image.svg`;
+                  const imgUrl = getProductImageUrl(p);
                   return (
                     <div key={p.id} className="product-card">
                       <Link to={`/products/${p.id}`} className="product-image-container">
-                        <img src={imgUrl} alt={p.title} className="product-card-img" />
+                        <img
+                          src={imgUrl}
+                          alt={p.title}
+                          className="product-card-img"
+                          onError={(e) => handleProductImageError(e, p.id)}
+                        />
                         {p.stock <= 5 && p.stock > 0 && (
                           <span className="stock-alert-badge">Only {p.stock} left</span>
                         )}
