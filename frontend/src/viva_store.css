@@ -1,0 +1,1554 @@
+/* ==========================================================================
+   Viva-Inspired Modern Curated Design System (Deep Forest Green & Warm Cream)
+   ========================================================================== */
+
+:root {
+  --color-forest-green: #0f382c;
+  --color-forest-hover: #164e3d;
+  --color-forest-dark: #09261e;
+  --color-forest-light: #eef2ea;
+  --color-sage-bg: #eef2ea;
+  --color-cream-bg: #fbfbf9;
+  --color-cream-card: #ffffff;
+  --color-coral-sale: #e76f51;
+  --color-star-gold: #f59e0b;
+  --radius-viva-pill: 9999px;
+  --radius-viva-card: 20px;
+  --radius-viva-hero: 28px;
+  --shadow-viva-card: 0 4px 20px rgba(0, 0, 0, 0.05);
+  --shadow-viva-hover: 0 12px 30px rgba(15, 56, 44, 0.12);
+}
+
+body {
+  background-color: var(--color-cream-bg) !important;
+}
+
+/* ==========================================================================
+   1. Store Header & Top Announcement Bar
+   ========================================================================== */
+
+.store-header {
+  background: #ffffff !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 50 !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04) !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+/* Top Announcement Strip */
+.store-top-bar {
+  background: var(--color-forest-green);
+  color: #e2e8f0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.4rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.store-top-bar-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.top-bar-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.top-bar-separator {
+  opacity: 0.35;
+}
+
+/* Main Header */
+.store-header-main {
+  background: #ffffff;
+}
+
+.store-header-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0.85rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+/* Brand Logo */
+.store-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+}
+
+.brand-logo-badge {
+  width: 42px;
+  height: 42px;
+  background: #e8f5e9;
+  border: 1.5px solid #c8e6c9;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-forest-green);
+  transition: transform 0.2s ease;
+}
+
+.store-brand:hover .brand-logo-badge {
+  transform: scale(1.05);
+}
+
+.brand-leaf-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-name {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--color-forest-green) !important;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.brand-sub {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #64748b !important;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* Central Pill Search Bar */
+.store-search-form {
+  flex: 1;
+  max-width: 520px;
+}
+
+.store-search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.store-search-input {
+  width: 100%;
+  padding: 0.65rem 3.25rem 0.65rem 1.25rem;
+  font-size: 0.875rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: var(--radius-viva-pill);
+  background: #f8fafc;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.store-search-input:focus {
+  border-color: var(--color-forest-green);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(15, 56, 44, 0.1);
+}
+
+.store-search-btn {
+  position: absolute;
+  right: 5px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--color-forest-green);
+  color: #ffffff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.store-search-btn:hover {
+  background: var(--color-forest-hover);
+  transform: scale(1.05);
+}
+
+/* Header Action Hub */
+.store-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.header-action-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: #334155;
+  font-size: 0.75rem;
+  font-weight: 600;
+  gap: 2px;
+  transition: color 0.15s ease;
+}
+
+.header-action-item:hover {
+  color: var(--color-forest-green);
+}
+
+.action-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.chat-trigger-btn {
+  background: #eef2ea !important;
+  color: var(--color-forest-green) !important;
+  border: 1.5px solid #c8d6c3 !important;
+  border-radius: var(--radius-viva-pill) !important;
+  padding: 0.5rem 1.1rem !important;
+  font-size: 0.8125rem !important;
+  font-weight: 700 !important;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.2s ease !important;
+}
+
+.chat-trigger-btn:hover {
+  background: var(--color-forest-green) !important;
+  color: #ffffff !important;
+  border-color: var(--color-forest-green) !important;
+  transform: translateY(-1px);
+}
+
+.store-cart-btn {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  text-decoration: none !important;
+  color: #0f172a !important;
+  font-size: 0.875rem !important;
+  font-weight: 700 !important;
+  padding: 0.5rem 1rem !important;
+  background: #f8fafc !important;
+  border: 1.5px solid #e2e8f0 !important;
+  border-radius: var(--radius-viva-pill) !important;
+  transition: all 0.2s ease !important;
+}
+
+.store-cart-btn:hover {
+  border-color: var(--color-forest-green) !important;
+  background: #ffffff !important;
+}
+
+.cart-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.cart-badge {
+  position: absolute !important;
+  top: -8px !important;
+  right: -10px !important;
+  background: var(--color-coral-sale) !important;
+  color: #ffffff !important;
+  font-size: 0.65rem !important;
+  font-weight: 800 !important;
+  border-radius: var(--radius-viva-pill) !important;
+  padding: 0.125rem 0.4rem !important;
+  min-width: 18px !important;
+  text-align: center;
+  line-height: 1.2 !important;
+}
+
+.customer-menu {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.btn-auth-logout {
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.btn-auth-logout:hover {
+  color: #ef4444;
+  background: #fef2f2;
+}
+
+.auth-links {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-auth-register {
+  background: var(--color-forest-green) !important;
+  color: #ffffff !important;
+  text-decoration: none;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.45rem 0.95rem;
+  border-radius: var(--radius-viva-pill) !important;
+  transition: background 0.15s ease;
+}
+
+.btn-auth-register:hover {
+  background: var(--color-forest-hover) !important;
+}
+
+/* Secondary Subnav Bar */
+.store-subnav {
+  background: #ffffff;
+  border-top: 1px solid #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0.45rem 1.5rem;
+}
+
+.store-subnav-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.subnav-category-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--color-forest-green);
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.45rem 1.15rem;
+  border-radius: var(--radius-viva-pill);
+  transition: background 0.15s ease;
+  white-space: nowrap;
+}
+
+.subnav-category-btn:hover {
+  background: var(--color-forest-hover);
+}
+
+.store-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.store-nav-link {
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  color: #475569 !important;
+  text-decoration: none !important;
+  padding: 0.4rem 0.85rem !important;
+  border-radius: var(--radius-viva-pill) !important;
+  transition: all 0.15s ease;
+}
+
+.store-nav-link:hover {
+  color: var(--color-forest-green) !important;
+  background: #f1f5f9 !important;
+}
+
+.store-nav-link.active {
+  color: var(--color-forest-green) !important;
+  background: #eef2ea !important;
+  font-weight: 700 !important;
+}
+
+.staff-console-link {
+  margin-left: auto;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  color: #64748b !important;
+  text-decoration: none !important;
+  padding: 0.3rem 0.75rem !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: var(--radius-viva-pill) !important;
+  transition: all 0.15s ease;
+}
+
+.staff-console-link:hover {
+  color: var(--color-forest-green) !important;
+  border-color: var(--color-forest-green) !important;
+}
+
+/* ==========================================================================
+   2. Homepage: Viva Curved Hero Banner
+   ========================================================================== */
+
+.home-page {
+  max-width: 1280px;
+  margin: 1.5rem auto 3.5rem;
+  padding: 0 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3.5rem;
+}
+
+.viva-hero-section {
+  width: 100%;
+}
+
+.viva-hero-card {
+  background: linear-gradient(135deg, #eef2ea 0%, #f6f8f5 60%, #e8ede3 100%);
+  border-radius: var(--radius-viva-hero);
+  padding: 3.5rem 3rem;
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  align-items: center;
+  gap: 2.5rem;
+  box-shadow: 0 8px 32px rgba(15, 56, 44, 0.06);
+  position: relative;
+  overflow: hidden;
+}
+
+.viva-hero-eyebrow {
+  display: inline-block;
+  background: rgba(15, 56, 44, 0.08);
+  color: var(--color-forest-green);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-viva-pill);
+  margin-bottom: 1rem;
+}
+
+.viva-hero-headline {
+  font-size: 2.85rem;
+  font-weight: 800;
+  color: var(--color-forest-green);
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  margin-bottom: 0.5rem;
+}
+
+.viva-hero-title-sub {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e3a2f;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.01em;
+}
+
+.viva-hero-subhead {
+  font-size: 1.05rem;
+  color: #334155;
+  line-height: 1.6;
+  max-width: 540px;
+  margin-bottom: 2rem;
+}
+
+.viva-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2.25rem;
+}
+
+.viva-hero-cta {
+  background: var(--color-forest-green);
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-decoration: none;
+  padding: 0.85rem 2rem;
+  border-radius: var(--radius-viva-pill);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(15, 56, 44, 0.2);
+}
+
+.viva-hero-cta:hover {
+  background: var(--color-forest-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(15, 56, 44, 0.28);
+}
+
+.viva-hero-secondary-btn {
+  background: transparent;
+  color: var(--color-forest-green);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 0.85rem 1.5rem;
+  border: 1.5px solid var(--color-forest-green);
+  border-radius: var(--radius-viva-pill);
+  transition: all 0.2s ease;
+}
+
+.viva-hero-secondary-btn:hover {
+  background: rgba(15, 56, 44, 0.05);
+}
+
+.viva-hero-trust-badges {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  border-top: 1px solid rgba(15, 56, 44, 0.12);
+  padding-top: 1.25rem;
+}
+
+.trust-badge-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.trust-badge-icon {
+  font-size: 1.1rem;
+}
+
+/* Hero Right Showcase */
+.viva-hero-showcase {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.viva-floating-sale-pill {
+  position: absolute;
+  top: -15px;
+  right: 15px;
+  background: var(--color-forest-green);
+  color: #ffffff;
+  border-radius: 14px;
+  padding: 0.6rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 6px 18px rgba(15, 56, 44, 0.25);
+  z-index: 10;
+}
+
+.sale-pill-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  opacity: 0.9;
+}
+
+.sale-pill-val {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #fde047;
+}
+
+.viva-hero-montage {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  width: 100%;
+  max-width: 360px;
+}
+
+.montage-item {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-viva-card);
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-shadow: var(--shadow-viva-card);
+  transition: transform 0.2s ease;
+}
+
+.montage-item:hover {
+  transform: translateY(-3px);
+}
+
+.montage-emoji {
+  font-size: 2.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.montage-caption {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.viva-hero-dots {
+  display: flex;
+  gap: 6px;
+  margin-top: 1.5rem;
+}
+
+.hero-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #cbd5e1;
+}
+
+.hero-dot.active {
+  width: 24px;
+  border-radius: 4px;
+  background: var(--color-forest-green);
+}
+
+/* ==========================================================================
+   3. Circular Pastel Category Shortcuts
+   ========================================================================== */
+
+.viva-category-circles-section {
+  width: 100%;
+}
+
+.viva-category-circles-container {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  overflow-x: auto;
+  padding: 0.5rem 0 1rem;
+  scrollbar-width: thin;
+}
+
+.category-circle-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  gap: 0.65rem;
+  flex: 0 0 auto;
+  transition: transform 0.2s ease;
+}
+
+.category-circle-item:hover {
+  transform: translateY(-4px);
+}
+
+.category-circle-avatar {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border-width: 1.5px;
+  border-style: solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.2s ease;
+}
+
+.category-circle-item:hover .category-circle-avatar {
+  box-shadow: 0 6px 16px rgba(15, 56, 44, 0.12);
+}
+
+.category-circle-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.category-circle-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #1e293b;
+  text-align: center;
+  max-width: 90px;
+}
+
+/* ==========================================================================
+   4. Products Section ("Top Picks For You ✨")
+   ========================================================================== */
+
+.viva-products-section {
+  width: 100%;
+}
+
+.viva-section-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 1.75rem;
+}
+
+.viva-section-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.viva-section-subtitle {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin-top: 0.25rem;
+}
+
+.viva-see-all-link {
+  color: var(--color-forest-green);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 700;
+  transition: color 0.15s ease;
+}
+
+.viva-see-all-link:hover {
+  color: var(--color-forest-hover);
+  text-decoration: underline;
+}
+
+.viva-products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.5rem;
+}
+
+.viva-product-card {
+  position: relative;
+  background: #ffffff;
+  border: 1px solid #edf2f7;
+  border-radius: var(--radius-viva-card);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-viva-card);
+  transition: all 0.25s ease;
+}
+
+.viva-product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-viva-hover);
+  border-color: #cbd5e1;
+}
+
+.viva-discount-tag {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: #fee2e2;
+  color: #dc2626;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  z-index: 5;
+}
+
+.viva-product-image-wrap {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: #f8fafc;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 0.85rem;
+  text-decoration: none;
+}
+
+.viva-product-img {
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.viva-product-card:hover .viva-product-img {
+  transform: scale(1.05);
+}
+
+.viva-stock-tag {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+}
+
+.viva-product-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.viva-product-title-link {
+  text-decoration: none;
+}
+
+.viva-product-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.35;
+  margin-bottom: 0.25rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.viva-product-title:hover {
+  color: var(--color-forest-green);
+}
+
+.viva-product-tamil {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+}
+
+.viva-product-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  margin-bottom: 0.65rem;
+}
+
+.rating-stars {
+  color: var(--color-star-gold);
+}
+
+.rating-count {
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.viva-product-pricing {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.viva-price-current {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--color-forest-green);
+}
+
+.viva-price-original {
+  font-size: 0.8125rem;
+  color: #94a3b8;
+  text-decoration: line-through;
+}
+
+.viva-product-actions {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+.viva-add-cart-btn {
+  background: var(--color-forest-green);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-viva-pill);
+  padding: 0.55rem 0.85rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.viva-add-cart-btn:hover:not(:disabled) {
+  background: var(--color-forest-hover);
+  transform: translateY(-1px);
+}
+
+.viva-add-cart-btn:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+}
+
+.viva-ask-ai-btn {
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+  border-radius: var(--radius-viva-pill);
+  padding: 0.55rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.viva-ask-ai-btn:hover {
+  background: #dcfce7;
+  border-color: #86efac;
+}
+
+/* ==========================================================================
+   5. Curated Promo Banner Row
+   ========================================================================== */
+
+.viva-promo-banners-section {
+  width: 100%;
+}
+
+.viva-promo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.viva-promo-card {
+  border-radius: var(--radius-viva-card);
+  padding: 2rem 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid transparent;
+  transition: transform 0.25s ease;
+}
+
+.viva-promo-card:hover {
+  transform: translateY(-4px);
+}
+
+.promo-mint {
+  background: #e8f5e9;
+  border-color: #c8e6c9;
+}
+
+.promo-sand {
+  background: #fdf6e2;
+  border-color: #f9e8b7;
+}
+
+.promo-sky {
+  background: #e1f5fe;
+  border-color: #b3e5fc;
+}
+
+.promo-eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #64748b;
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.promo-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.25;
+  margin-bottom: 0.85rem;
+}
+
+.promo-link {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-forest-green);
+  text-decoration: none;
+}
+
+.promo-link:hover {
+  text-decoration: underline;
+}
+
+.promo-emoji {
+  font-size: 3.5rem;
+  line-height: 1;
+}
+
+/* ==========================================================================
+   6. Customer Reviews Section ("Loved By Thousands ❤️")
+   ========================================================================== */
+
+.viva-testimonials-section {
+  width: 100%;
+}
+
+.viva-testimonials-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.testimonials-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.testimonials-overall-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.overall-stars {
+  color: var(--color-star-gold);
+}
+
+.viva-testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.viva-testimonial-card {
+  background: #ffffff;
+  border: 1px solid #edf2f7;
+  border-radius: var(--radius-viva-card);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-viva-card);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.testimonial-user-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.testimonial-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+}
+
+.testimonial-name {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #0f172a;
+  display: block;
+}
+
+.verified-badge {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #16a34a;
+}
+
+.testimonial-stars {
+  color: var(--color-star-gold);
+  font-size: 0.875rem;
+}
+
+.testimonial-quote {
+  font-size: 0.85rem;
+  color: #475569;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+/* ==========================================================================
+   7. Newsletter Subscription Strip ("Stay in the Loop")
+   ========================================================================== */
+
+.viva-newsletter-section {
+  width: 100%;
+}
+
+.viva-newsletter-card {
+  background: var(--color-forest-green);
+  border-radius: var(--radius-viva-card);
+  padding: 2.5rem 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  color: #ffffff;
+  box-shadow: 0 10px 30px rgba(15, 56, 44, 0.2);
+}
+
+.newsletter-icon {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.newsletter-text-wrap {
+  flex: 1;
+}
+
+.newsletter-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 0.25rem;
+}
+
+.newsletter-subtitle {
+  font-size: 0.875rem;
+  color: #cbd5e1;
+  line-height: 1.5;
+}
+
+.newsletter-form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 4px;
+  border-radius: var(--radius-viva-pill);
+  min-width: 360px;
+}
+
+.newsletter-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0.6rem 1.25rem;
+  color: #ffffff;
+  font-size: 0.875rem;
+}
+
+.newsletter-input::placeholder {
+  color: #cbd5e1;
+}
+
+.newsletter-btn {
+  background: #ffffff;
+  color: var(--color-forest-green);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  border: none;
+  border-radius: var(--radius-viva-pill);
+  padding: 0.65rem 1.5rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.newsletter-btn:hover {
+  background: #f1f5f9;
+}
+
+.newsletter-success-toast {
+  margin-top: 0.75rem;
+  background: #dcfce7;
+  color: #166534;
+  padding: 0.65rem 1rem;
+  border-radius: var(--radius-viva-pill);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.newsletter-privacy-note {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-align: center;
+  margin-top: 0.75rem;
+}
+
+/* ==========================================================================
+   8. Value Propositions / Trust Pillars Bar
+   ========================================================================== */
+
+.viva-trust-pillars-section {
+  width: 100%;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 2rem;
+}
+
+.viva-trust-pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+}
+
+.trust-pillar-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: #ffffff;
+  border: 1px solid #edf2f7;
+  border-radius: var(--radius-viva-card);
+  padding: 1.25rem 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.trust-pillar-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.trust-pillar-card strong {
+  font-size: 0.9375rem;
+  color: #0f172a;
+  display: block;
+}
+
+.trust-pillar-card p {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+/* ==========================================================================
+   9. Store Footer (Deep Forest Green Theme)
+   ========================================================================== */
+
+.store-footer {
+  background: var(--color-forest-green) !important;
+  color: #cbd5e1 !important;
+  padding: 3.5rem 1.5rem 1.5rem !important;
+  margin-top: 4rem !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.store-footer-container {
+  max-width: 1280px !important;
+  margin: 0 auto !important;
+  display: grid !important;
+  grid-template-columns: 1.5fr repeat(4, 1fr) !important;
+  gap: 2.5rem !important;
+}
+
+.footer-col-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.footer-brand-badge {
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #a7f3d0;
+}
+
+.footer-leaf-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.footer-brand-name {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #ffffff !important;
+  display: block;
+  line-height: 1.1;
+}
+
+.footer-brand-sub {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #a7f3d0 !important;
+  letter-spacing: 0.8px;
+}
+
+.footer-brand-desc {
+  font-size: 0.8125rem;
+  color: #94a3b8 !important;
+  line-height: 1.6;
+}
+
+.footer-social-links {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.footer-heading {
+  color: #ffffff !important;
+  font-size: 0.9375rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 1.1rem !important;
+}
+
+.footer-links {
+  list-style: none !important;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.footer-links li a,
+.footer-text-link {
+  color: #cbd5e1 !important;
+  text-decoration: none !important;
+  font-size: 0.8125rem !important;
+  transition: color 0.15s ease;
+}
+
+.footer-links li a:hover {
+  color: #ffffff !important;
+  text-decoration: underline !important;
+}
+
+.footer-console-link {
+  display: inline-block;
+  color: #a7f3d0 !important;
+  text-decoration: none;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.footer-console-link:hover {
+  color: #ffffff !important;
+  text-decoration: underline;
+}
+
+.footer-app-desc {
+  font-size: 0.8125rem;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin-bottom: 0.85rem;
+}
+
+.footer-app-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.app-badge {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 0.4rem 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.app-badge:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.app-badge-icon {
+  font-size: 1.25rem;
+}
+
+.app-badge-sub {
+  font-size: 0.6rem;
+  color: #94a3b8;
+  display: block;
+  text-transform: uppercase;
+}
+
+.app-badge-name {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.footer-bottom {
+  max-width: 1280px !important;
+  margin: 3rem auto 0 !important;
+  padding-top: 1.5rem !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.footer-bottom-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.footer-copyright {
+  font-size: 0.75rem !important;
+  color: #94a3b8 !important;
+}
+
+.footer-legal-links {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.legal-link {
+  cursor: pointer;
+}
+
+.legal-link:hover {
+  color: #ffffff;
+}
+
+.legal-dot {
+  opacity: 0.5;
+}
+
+.footer-region-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-viva-pill);
+  font-size: 0.75rem;
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   10. Refinements for Products Catalog, Cart, Checkout, and Order Details
+   ========================================================================== */
+
+/* Buttons */
+.btn-primary,
+.btn-checkout,
+.btn-place-order,
+.btn-start-shopping,
+.btn-auth-login {
+  border-radius: var(--radius-viva-pill) !important;
+  font-weight: 700 !important;
+}
+
+.btn-primary,
+.btn-place-order {
+  background: var(--color-forest-green) !important;
+  border-color: var(--color-forest-green) !important;
+  color: #ffffff !important;
+}
+
+.btn-primary:hover,
+.btn-place-order:hover {
+  background: var(--color-forest-hover) !important;
+}
+
+.btn-outline,
+.btn-auth-secondary {
+  border-radius: var(--radius-viva-pill) !important;
+  border-color: var(--color-forest-green) !important;
+  color: var(--color-forest-green) !important;
+}
+
+.btn-outline:hover {
+  background: var(--color-forest-light) !important;
+}
+
+/* Category Pills on Products Page */
+.category-filter-pill.active {
+  background: var(--color-forest-green) !important;
+  color: #ffffff !important;
+}
+
+/* Status Pill in Orders */
+.status-pill.delivered {
+  background: #dcfce7 !important;
+  color: #166534 !important;
+}
+
+.status-pill.placed,
+.status-pill.processing {
+  background: #fef3c7 !important;
+  color: #92400e !important;
+}
+
+/* ==========================================================================
+   Responsive Adaptations
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+  .viva-hero-card {
+    grid-template-columns: 1fr;
+    padding: 2.5rem 2rem;
+  }
+  .viva-hero-right {
+    display: none;
+  }
+  .viva-promo-grid {
+    grid-template-columns: 1fr;
+  }
+  .viva-testimonials-grid {
+    grid-template-columns: 1fr;
+  }
+  .viva-trust-pillars-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .store-footer-container {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .viva-newsletter-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 2rem;
+  }
+  .newsletter-form {
+    width: 100%;
+    min-width: unset;
+  }
+}
+
+@media (max-width: 640px) {
+  .store-header-container {
+    flex-wrap: wrap;
+  }
+  .store-search-form {
+    order: 3;
+    max-width: 100%;
+    width: 100%;
+  }
+  .viva-hero-headline {
+    font-size: 2rem;
+  }
+  .viva-products-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .viva-trust-pillars-grid {
+    grid-template-columns: 1fr;
+  }
+  .store-footer-container {
+    grid-template-columns: 1fr !important;
+  }
+}
