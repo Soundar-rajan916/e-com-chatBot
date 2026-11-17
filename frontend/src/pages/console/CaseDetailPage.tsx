@@ -271,7 +271,7 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({ currentAgent }) 
           <div className="case-title-group">
             <h3>Case #{esc.id.slice(0, 8)}</h3>
             <span className={`badge-status badge-status-${esc.status}`}>
-              {esc.status.replace('_', ' ').toUpperCase()}
+              {(esc.status || 'open').replace('_', ' ').toUpperCase()}
             </span>
             {esc.is_overdue && <span className="badge-overdue">⚠️ SLA BREACH</span>}
           </div>
@@ -354,7 +354,7 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({ currentAgent }) 
               </div>
               <div className="profile-row">
                 <span className="profile-label">Language:</span>
-                <span className="lang-tag">{detail.customer.preferred_language.toUpperCase()}</span>
+                <span className="lang-tag">{(detail.customer?.preferred_language || 'en').toUpperCase()}</span>
               </div>
               <div className="profile-row">
                 <span className="profile-label">Reason:</span>
@@ -658,7 +658,7 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({ currentAgent }) 
                   <div className="timeline-marker" />
                   <div className="timeline-content">
                     <div className="timeline-header">
-                      <span className="timeline-action">{ev.action.toUpperCase()}</span>
+                      <span className="timeline-action">{(ev.action || 'event').toUpperCase()}</span>
                       <span className="timeline-time">
                         {new Date(ev.created_at).toLocaleTimeString([], {
                           hour: '2-digit',

@@ -19,10 +19,17 @@ from app.api.admin_cases import (
 from app.api.admin_escalations import (
     router as admin_escalations_router,
 )
+from app.api.admin_operations import router as admin_operations_router
+from app.api.cart import router as cart_router
 from app.api.chat import router as chat_router
+from app.api.customer_auth import router as customer_auth_router
 from app.api.customers import router as customers_router
 from app.api.debug import router as debug_router
 from app.api.health import router as health_router
+from app.api.orders import router as orders_router
+from app.api.products import categories_router
+from app.api.products import router as products_router
+from app.api.store_config import router as store_config_router
 from app.config import get_settings
 from app.db import engine
 
@@ -74,7 +81,7 @@ def create_app() -> FastAPI:
         allow_origins=settings.cors_origins_list,
         allow_credentials=True,
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-        allow_headers=["Content-Type", "Authorization", "X-Request-ID", "X-Requested-With", "Accept"],
+        allow_headers=["*"],
         expose_headers=["X-Request-ID"],
     )
 
@@ -141,9 +148,16 @@ def create_app() -> FastAPI:
 
     # Router registration
     app.include_router(health_router, tags=["Health"])
+    app.include_router(customer_auth_router)
+    app.include_router(store_config_router)
+    app.include_router(categories_router)
+    app.include_router(products_router)
+    app.include_router(cart_router)
+    app.include_router(orders_router)
     app.include_router(chat_router, tags=["Chat"])
     app.include_router(debug_router, tags=["Debug"])
     app.include_router(admin_auth_router)
+    app.include_router(admin_operations_router)
     app.include_router(admin_cases_router)
     app.include_router(admin_escalations_router)
     app.include_router(public_session_router)

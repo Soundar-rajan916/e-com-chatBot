@@ -86,11 +86,13 @@ async def record_escalation(
 
 async def handle_message(
     session: AsyncSession,
-    customer_id: UUID,
+    customer_id: UUID | None,
     session_id: UUID | None,
     text: str,
     channel: str = "web",
     input_mode: str = "text",
+    anon_token: str | None = None,
+    context: dict[str, Any] | None = None,
     llm_client: GroqLLMClient | None = None,
     settings: Settings | None = None,
 ) -> ChatResponse:
@@ -98,7 +100,11 @@ async def handle_message(
     Core pipeline orchestrator for customer messages.
     Deterministic handlers control DB access; LLM only classifies and generates text.
     Always writes a trace row, even on failure.
+    Supports authenticated customers and anonymous visitors (via anon_token),
+    context pinning (product/order), and deterministic client actions.
     """
+    from app.auth.security import hash_session_token
+
     cfg = settings or get_settings()
     client = llm_client or GroqLLMClient(cfg)
     pipeline_start_time = time.monotonic()
@@ -113,23 +119,55 @@ async def handle_message(
             detail=f"Message exceeds maximum allowed length of {cfg.MAX_MESSAGE_CHARS} characters.",
         )
 
-    # Verify customer exists
-    customer_stmt = select(Customer).where(Customer.id == customer_id)
-    customer = (await session.execute(customer_stmt)).scalar_one_or_none()
-    if customer is None:
-        raise HTTPException(status_code=404, detail="Customer not found.")
+    # Verify customer if authenticated
+    customer: Customer | None = None
+    if customer_id is not None:
+        customer_stmt = select(Customer).where(Customer.id == customer_id)
+        customer = (await session.execute(customer_stmt)).scalar_one_or_none()
+        if customer is None:
+            raise HTTPException(status_code=404, detail="Customer not found.")
 
     # Validate or create chat session
+    anon_token_hash = hash_session_token(anon_token) if anon_token else None
+
     if session_id is None:
-        chat_session = ChatSession(customer_id=customer_id, channel=channel)
-        session.add(chat_session)
-        await session.flush()
+        # Check if an active anonymous session exists for this anon token
+        if customer_id is None and anon_token_hash:
+            s_stmt = (
+                select(ChatSession)
+                .where(
+                    ChatSession.anon_token_hash == anon_token_hash,
+                    ChatSession.customer_id.is_(None),
+                )
+                .order_by(ChatSession.created_at.desc())
+                .limit(1)
+            )
+            chat_session = (await session.execute(s_stmt)).scalar_one_or_none()
+            if chat_session is None:
+                chat_session = ChatSession(
+                    customer_id=None,
+                    anon_token_hash=anon_token_hash,
+                    channel=channel,
+                )
+                session.add(chat_session)
+                await session.flush()
+        else:
+            chat_session = ChatSession(
+                customer_id=customer_id,
+                anon_token_hash=anon_token_hash,
+                channel=channel,
+            )
+            session.add(chat_session)
+            await session.flush()
     else:
         session_stmt = select(ChatSession).where(ChatSession.id == session_id)
         chat_session = (await session.execute(session_stmt)).scalar_one_or_none()
         if chat_session is None:
             raise HTTPException(status_code=404, detail="Chat session not found.")
-        if chat_session.customer_id != customer_id:
+        # If session belonged to anonymous user and now we have authenticated customer, claim it
+        if chat_session.customer_id is None and customer_id is not None:
+            chat_session.customer_id = customer_id
+        elif customer_id is not None and chat_session.customer_id != customer_id:
             raise HTTPException(status_code=403, detail="Session does not belong to this customer.")
 
     # Step 2: Store user message & load history
@@ -250,7 +288,70 @@ async def handle_message(
     order_number = router_output.order_number
     refund_reason = router_output.refund_reason
 
+    # Apply context pinning if provided
+    pinned_product_id: str | None = None
+    if context:
+        ctx_type = context.get("type")
+        ctx_id = context.get("id")
+        if ctx_type == "order" and not order_number and ctx_id:
+            order_number = str(ctx_id).strip()
+        elif ctx_type == "product" and ctx_id:
+            pinned_product_id = str(ctx_id).strip()
+
+    actions: list[dict[str, Any]] = []
+
     # Step 4: TOOLS & RAG RETRIEVAL
+    # Check if anonymous user is attempting authenticated actions
+    if customer_id is None and intent in ("order_status", "refund_request"):
+        reply_text = (
+            "Please sign in to your account to view your order status or request a return. / "
+            "உங்கள் ஆர்டர் விவரங்களைப் பார்க்க அல்லது திரும்பப் பெற உங்கள் கணக்கில் உள்நுழையவும்."
+            if language in ("ta", "tanglish")
+            else "Please sign in to your account to view your order details or request a return."
+        )
+        actions.append({"type": "open_login", "payload": {}})
+        assistant_msg = ChatMessage(
+            session_id=chat_session.id,
+            role="assistant",
+            content=reply_text,
+            input_mode="text",
+        )
+        session.add(assistant_msg)
+        await session.flush()
+
+        latency_ms = int((time.monotonic() - pipeline_start_time) * 1000)
+        trace = Trace(
+            session_id=chat_session.id,
+            user_message_id=user_msg.id,
+            intent=intent,
+            language=language,
+            router_raw=router_raw,
+            tool_calls=[],
+            final_answer=reply_text,
+            models=models_used,
+            prompt_tokens=total_prompt_tokens,
+            completion_tokens=total_completion_tokens,
+            cost_inr=total_cost_inr,
+            latency_ms=latency_ms,
+            error=None,
+        )
+        session.add(trace)
+        await session.commit()
+        await session.refresh(trace)
+
+        return ChatResponse(
+            session_id=chat_session.id,
+            reply=reply_text,
+            intent=intent,
+            language=language,
+            requires_human=False,
+            trace_id=trace.id,
+            sources=[],
+            suggested_actions=["Sign In", "View Products", "Return Policy"],
+            actions=actions,
+            structured_output=None,
+        )
+
     tool_result: dict[str, Any]
 
     if intent == "order_status":
@@ -329,6 +430,10 @@ async def handle_message(
         )
         tool_calls.append(trace_entry)
         response_sources.extend(sources)
+        if sources:
+            actions.append({"type": "view_product", "payload": {"product_id": sources[0].id}})
+        elif pinned_product_id:
+            actions.append({"type": "view_product", "payload": {"product_id": pinned_product_id}})
 
     elif intent == "escalate":
         r_type = (
@@ -337,7 +442,7 @@ async def handle_message(
         escalation = await record_escalation(
             session=session,
             session_id=chat_session.id,
-            customer_id=customer_id,
+            customer_id=customer_id or customer_id,  # customer_id can be UUID
             reason=f"Customer request / bot escalation. Last input: {cleaned_text[:200]}",
             reason_type=r_type,
             priority="normal",
@@ -351,6 +456,7 @@ async def handle_message(
         tool_calls.append(
             {"tool": "create_escalation", "input": {"reason": escalation.reason}, "output": tool_result}
         )
+        actions.append({"type": "show_escalation", "payload": {"status": "handed_to_support"}})
 
     else:  # smalltalk
         tool_result = {
@@ -440,5 +546,6 @@ async def handle_message(
         trace_id=trace.id,
         sources=response_sources,
         suggested_actions=suggested_actions,
+        actions=actions,
         structured_output=structured_output,
     )

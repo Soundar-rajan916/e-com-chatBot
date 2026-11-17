@@ -16,21 +16,34 @@ from app.db import async_session_factory, engine
 from app.models import (
     Agent,
     AgentSession,
+    Cart,
+    CartItem,
     ChatMessage,
     ChatSession,
     Customer,
+    CustomerSession,
     Escalation,
     EscalationEvent,
     EscalationNote,
+    IdempotencyKey,
     Order,
     OrderItem,
+    OrderStatusHistory,
     Refund,
     Trace,
 )
 
 
-async def seed_data(session: AsyncSession) -> None:
+async def seed_data(session: AsyncSession, force: bool = False) -> None:
     settings = get_settings()
+
+    if not force:
+        from sqlalchemy import select
+        stmt = select(Customer).where(Customer.email == "customer1@example.com")
+        existing = (await session.execute(stmt)).scalar_one_or_none()
+        if existing is not None:
+            print("Demo data already present. Preserving registered customers and order history.")
+            return
 
     # Clean existing data in dependency order
     for model in [
@@ -41,8 +54,13 @@ async def seed_data(session: AsyncSession) -> None:
         ChatMessage,
         ChatSession,
         Refund,
+        OrderStatusHistory,
+        IdempotencyKey,
         OrderItem,
+        CartItem,
+        Cart,
         Order,
+        CustomerSession,
         AgentSession,
         Agent,
         Customer,
@@ -53,21 +71,25 @@ async def seed_data(session: AsyncSession) -> None:
     now = datetime.now(UTC)
 
     # 1. Five Customers
+    default_customer_password_hash = hash_password("CustomerPass123!")
     customers_data = [
-        {"name": "Priya Sharma", "phone": "+919876543210", "preferred_language": "en"},
-        {"name": "Karthik Raja", "phone": "+919876543211", "preferred_language": "ta"},
-        {"name": "Ananya Sundaram", "phone": "+919876543212", "preferred_language": "tanglish"},
-        {"name": "Suresh Kumar", "phone": "+919876543213", "preferred_language": "ta"},
-        {"name": "Deepa Raman", "phone": "+919876543214", "preferred_language": "en"},
+        {"name": "Priya Sharma", "phone": "+919876543210", "preferred_language": "en", "email": "customer1@example.com"},
+        {"name": "Karthik Raja", "phone": "+919876543211", "preferred_language": "ta", "email": "customer2@example.com"},
+        {"name": "Ananya Sundaram", "phone": "+919876543212", "preferred_language": "tanglish", "email": "customer3@example.com"},
+        {"name": "Suresh Kumar", "phone": "+919876543213", "preferred_language": "ta", "email": "customer4@example.com"},
+        {"name": "Deepa Raman", "phone": "+919876543214", "preferred_language": "en", "email": "customer5@example.com"},
     ]
 
     customers = []
     for c_info in customers_data:
         c = Customer(
             id=uuid.uuid4(),
+            email=c_info["email"],
+            password_hash=default_customer_password_hash,
             name=c_info["name"],
             phone=c_info["phone"],
             preferred_language=c_info["preferred_language"],
+            is_active=True,
         )
         session.add(c)
         customers.append(c)
@@ -494,7 +516,7 @@ async def seed_data(session: AsyncSession) -> None:
     print("\nDEMO CUSTOMERS:")
     for c in customers:
         print(f"  • ID: {c.id}")
-        print(f"    Name: {c.name} | Phone: {c.phone} | Lang: {c.preferred_language}")
+        print(f"    Name: {c.name} | Email: {c.email} (pass: CustomerPass123!) | Phone: {c.phone} | Lang: {c.preferred_language}")
 
     print("\nDEMO ORDERS:")
     for o in orders:
@@ -517,11 +539,12 @@ async def seed_data(session: AsyncSession) -> None:
     print("=" * 60 + "\n")
 
 
-async def main():
+async def main(force: bool = False):
     async with async_session_factory() as session:
-        await seed_data(session)
+        await seed_data(session, force=force)
     await engine.dispose()
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    force_flag = "--force" in sys.argv
+    asyncio.run(main(force=force_flag))

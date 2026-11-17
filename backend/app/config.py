@@ -102,6 +102,16 @@ class Settings(BaseSettings):
     SARVAM_API_KEY: str | None = None
     SARVAM_BASE_URL: str = "https://api.sarvam.ai"
 
+    # Phase 4: E-Commerce Storefront
+    SHOP_COOKIE_NAME: str = "shop_session"
+    SHOP_SESSION_MAX_AGE_DAYS: int = 14
+    ANON_COOKIE_NAME: str = "support_anon"
+    CUSTOMER_LOCKOUT_ATTEMPTS: int = 5
+    CUSTOMER_LOCKOUT_MINUTES: int = 15
+    STORE_NAME: str = "Regional E-Commerce Store"
+    ALLOW_CLIENT_CUSTOMER_ID: bool = True
+    PRODUCT_SEARCH_EMBED_TIMEOUT_MS: int = 1500
+
     @computed_field  # type: ignore[prop-decorator]
     @property
     def cors_origins_list(self) -> list[str]:

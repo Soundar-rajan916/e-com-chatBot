@@ -36,7 +36,7 @@ export const CustomerPicker: React.FC<CustomerPickerProps> = ({
       >
         {customers.map((c) => (
           <option key={c.id} value={c.id}>
-            {c.name} ({c.phone}) - {c.preferred_language.toUpperCase()}
+            {c.name} ({c.phone}) - {(c.preferred_language || 'en').toUpperCase()}
           </option>
         ))}
       </select>

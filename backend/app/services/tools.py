@@ -200,147 +200,21 @@ async def create_refund(
     payment_gateway: MockPaymentGateway | None = None,
 ) -> dict[str, Any]:
     """
-    Execute refund creation inside a transaction with SELECT FOR UPDATE row locking.
-    Threshold comparison is strictly done in code against auto_approve_limit.
-    Creates or links a high-priority escalation if refund is pending_approval in the same transaction.
+    Execute refund creation using the unified request_refund service.
     """
-    gateway = payment_gateway or MockPaymentGateway()
-    reason_text = refund_reason or "Customer requested refund"
+    from app.services.refunds import request_refund
 
-    # Lock the order row to prevent concurrent double-refunds
-    stmt = (
-        select(Order)
-        .where(Order.order_number == order_number, Order.customer_id == customer_id)
-        .with_for_update()
-    )
-    res = await session.execute(stmt)
-    order = res.scalar_one_or_none()
-
-    if order is None:
-        return {
-            "success": False,
-            "reason": "not_found",
-            "message": "Order not found under your account.",
-            "requires_human": False,
-        }
-
-    # Verify no active refund while holding lock
-    refund_stmt = (
-        select(Refund)
-        .where(
-            Refund.order_id == order.id,
-            Refund.status.in_(["processed", "pending_approval", "approved"]),
-        )
-        .with_for_update()
-    )
-    existing_refund = (await session.execute(refund_stmt)).scalar_one_or_none()
-    if existing_refund is not None:
-        return {
-            "success": False,
-            "reason": "already_refunded",
-            "order_number": order_number,
-            "refund_status": existing_refund.status,
-            "message": f"A refund request already exists with status '{existing_refund.status}'.",
-            "requires_human": existing_refund.status == "pending_approval",
-        }
-
-    amount = order.total_amount
-    payout_info: dict[str, Any] | None = None
-
-    if amount <= auto_approve_limit:
-        refund_status = "processed"
-        decided_by = "auto_rule_threshold"
-        requires_human = False
-        payout_info = await gateway.payout(customer_id, order.id, amount)
-    else:
-        refund_status = "pending_approval"
-        decided_by = None
-        requires_human = True
-
-    new_refund = Refund(
-        order_id=order.id,
+    reason = refund_reason or "Customer requested refund"
+    result = await request_refund(
+        session=session,
         customer_id=customer_id,
-        amount=amount,
-        status=refund_status,
-        reason=reason_text,
-        decided_by=decided_by,
+        order_number=order_number,
+        reason=reason,
+        source="chat_tool",
+        session_id=session_id,
+        payment_gateway=payment_gateway,
     )
-    session.add(new_refund)
-    await session.flush()
-
-    escalation_id: str | None = None
-    if refund_status == "pending_approval" and session_id is not None:
-        # Idempotent: check for existing active escalation for this session
-        esc_stmt = (
-            select(Escalation)
-            .where(
-                Escalation.session_id == session_id,
-                Escalation.status.in_(["open", "in_progress"]),
-            )
-            .with_for_update()
-        )
-        existing_esc = (await session.execute(esc_stmt)).scalar_one_or_none()
-
-        if existing_esc:
-            existing_esc.refund_id = new_refund.id
-            existing_esc.priority = "high"
-            existing_esc.reason_type = "refund_pending_approval"
-            escalation_id = str(existing_esc.id)
-            event = EscalationEvent(
-                escalation_id=existing_esc.id,
-                actor_type="system",
-                actor_id=None,
-                action="priority_changed",
-                detail={
-                    "priority": "high",
-                    "refund_id": str(new_refund.id),
-                    "reason_type": "refund_pending_approval",
-                },
-            )
-            session.add(event)
-        else:
-            new_esc = Escalation(
-                session_id=session_id,
-                customer_id=customer_id,
-                reason=f"Refund approval required for {order_number} (₹{amount})",
-                reason_type="refund_pending_approval",
-                status="open",
-                priority="high",
-                refund_id=new_refund.id,
-                version=1,
-            )
-            session.add(new_esc)
-            await session.flush()
-            escalation_id = str(new_esc.id)
-            event = EscalationEvent(
-                escalation_id=new_esc.id,
-                actor_type="system",
-                actor_id=None,
-                action="created",
-                detail={
-                    "reason_type": "refund_pending_approval",
-                    "order_number": order_number,
-                    "amount": str(amount),
-                    "refund_id": str(new_refund.id),
-                },
-            )
-            session.add(event)
-
-    await session.commit()
-    await session.refresh(new_refund)
-
-    return {
-        "success": True,
-        "refund_id": str(new_refund.id),
-        "escalation_id": escalation_id,
-        "order_number": order_number,
-        "amount": str(amount),
-        "status": refund_status,
-        "requires_human": requires_human,
-        "payout_info": payout_info,
-        "message": (
-            f"Refund for ₹{amount} has been processed successfully."
-            if refund_status == "processed"
-            else f"Refund for ₹{amount} requires supervisor approval as it exceeds ₹{auto_approve_limit}."
-        ),
-    }
+    # Format amount as string for backward-compatibility with existing chat tool schemas
+    if "amount" in result and isinstance(result["amount"], Decimal):
+        result["amount"] = str(result["amount"])
+    return result

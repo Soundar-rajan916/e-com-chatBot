@@ -42,13 +42,25 @@ class Customer(Base):
     __tablename__ = "customers"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    email: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True, index=True)
+    password_hash: Mapped[str | None] = mapped_column(Text, nullable=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     phone: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, index=True)
     preferred_language: Mapped[str] = mapped_column(String(20), nullable=False, default="en")
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    failed_attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
+    sessions: Mapped[list["CustomerSession"]] = relationship(
+        "CustomerSession", back_populates="customer", cascade="all, delete-orphan"
+    )
+    cart: Mapped["Cart | None"] = relationship(
+        "Cart", back_populates="customer", uselist=False, cascade="all, delete-orphan"
+    )
     orders: Mapped[list["Order"]] = relationship(
         "Order", back_populates="customer", cascade="all, delete-orphan"
     )
@@ -57,6 +69,70 @@ class Customer(Base):
     )
     refunds: Mapped[list["Refund"]] = relationship(
         "Refund", back_populates="customer", cascade="all, delete-orphan"
+    )
+
+
+class CustomerSession(Base):
+    __tablename__ = "customer_sessions"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    customer_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    user_agent: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    customer: Mapped["Customer"] = relationship("Customer", back_populates="sessions")
+
+
+class Cart(Base):
+    __tablename__ = "carts"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    customer_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), unique=True, nullable=False, index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    customer: Mapped["Customer"] = relationship("Customer", back_populates="cart")
+    items: Mapped[list["CartItem"]] = relationship(
+        "CartItem", back_populates="cart", cascade="all, delete-orphan"
+    )
+
+
+class CartItem(Base):
+    __tablename__ = "cart_items"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    cart_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("carts.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    product_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("products.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    cart: Mapped["Cart"] = relationship("Cart", back_populates="items")
+    product: Mapped["Product"] = relationship("Product")
+
+    __table_args__ = (
+        UniqueConstraint("cart_id", "product_id", name="uq_cart_item_cart_product"),
     )
 
 
@@ -75,12 +151,75 @@ class Order(Base):
     delivered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     tracking_note: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+    # Shipping details
+    shipping_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    shipping_phone: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    shipping_line1: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    shipping_line2: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    shipping_city: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    shipping_state: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    shipping_pincode: Mapped[str | None] = mapped_column(String(20), nullable=True)
+
+    # Payment details
+    payment_method: Mapped[str] = mapped_column(String(50), default="cod", nullable=False)
+    payment_status: Mapped[str] = mapped_column(String(50), default="pending", nullable=False)
+
+    # Cancellation
+    cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    cancel_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+
     customer: Mapped["Customer"] = relationship("Customer", back_populates="orders")
     items: Mapped[list["OrderItem"]] = relationship(
         "OrderItem", back_populates="order", cascade="all, delete-orphan"
     )
     refunds: Mapped[list["Refund"]] = relationship(
         "Refund", back_populates="order", cascade="all, delete-orphan"
+    )
+    status_history: Mapped[list["OrderStatusHistory"]] = relationship(
+        "OrderStatusHistory",
+        back_populates="order",
+        cascade="all, delete-orphan",
+        order_by="OrderStatusHistory.at",
+    )
+
+
+class OrderStatusHistory(Base):
+    __tablename__ = "order_status_history"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    order_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("orders.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    status: Mapped[str] = mapped_column(String(50), nullable=False)
+    at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    note: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    order: Mapped["Order"] = relationship("Order", back_populates="status_history")
+
+
+class IdempotencyKey(Base):
+    __tablename__ = "idempotency_keys"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    customer_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    key: Mapped[str] = mapped_column(String(100), nullable=False)
+    order_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("orders.id", ondelete="SET NULL"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    customer: Mapped["Customer"] = relationship("Customer")
+    order: Mapped["Order | None"] = relationship("Order")
+
+    __table_args__ = (
+        UniqueConstraint("customer_id", "key", name="uq_idempotency_customer_key"),
+        Index("ix_idempotency_customer_key", "customer_id", "key"),
     )
 
 
@@ -133,15 +272,16 @@ class ChatSession(Base):
     __tablename__ = "chat_sessions"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    customer_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=False, index=True
+    customer_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=True, index=True
     )
+    anon_token_hash: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
     channel: Mapped[str] = mapped_column(String(50), default="web", nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
-    customer: Mapped["Customer"] = relationship("Customer", back_populates="chat_sessions")
+    customer: Mapped["Customer | None"] = relationship("Customer", back_populates="chat_sessions")
     messages: Mapped[list["ChatMessage"]] = relationship(
         "ChatMessage",
         back_populates="session",
@@ -373,6 +513,7 @@ class Product(Base):
     description_ta: Mapped[str] = mapped_column(Text, nullable=False)
     price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False, index=True)
     stock_qty: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     rating: Mapped[Decimal | None] = mapped_column(Numeric(2, 1), nullable=True)
     content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     embedding: Mapped[Any] = mapped_column(EmbeddingColumnType, nullable=False)

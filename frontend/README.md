@@ -1,71 +1,39 @@
-# Multilingual Regional E-Commerce Support Assistant - Frontend (Phase 2)
+# Multilingual Regional E-Commerce Storefront & Staff Console
 
-React 18 + TypeScript + Vite frontend client for customer support in English, Tamil (தமிழ்), and Tanglish, featuring grounded source citations and multilingual conversational UI.
-
----
-
-## 1. Prerequisites
-
-- **Node.js**: v20+ (tested on Node v24.14.0)
-- **npm**: v10+ (tested on npm 11.14.0)
-- **Backend API**: Running at `http://127.0.0.1:8000` (FastAPI)
+React 18 + TypeScript + Vite web application offering an end-to-end regional e-commerce store with integrated bilingual customer support, order management, return processing, and staff escalation console.
 
 ---
 
-## 2. Setup & Installation (PowerShell)
+## Architecture & Structure
+
+- **Storefront**:
+  - `src/pages/store/HomePage.tsx`: Featured categories, trending products, policies.
+  - `src/pages/store/ProductListPage.tsx`: Catalog browsing, filtering by price/stock, sorting, and contextual "Ask AI".
+  - `src/pages/store/ProductDetailPage.tsx`: Bilingual product details, stock validation, and contextual chat launcher.
+  - `src/pages/store/CartPage.tsx`: Line items with quantities, live price and stock validation, subtotal calculation.
+  - `src/pages/store/CheckoutPage.tsx`: Address collection, payment choice (COD vs Demo Card), idempotency protection.
+  - `src/pages/store/OrdersPage.tsx` & `OrderDetailPage.tsx`: Order history, status timeline, cancellation, and 7-day return request flow.
+  - `src/pages/store/DevChatPage.tsx`: Route `/dev/chat` exercising the standalone support widget with context manipulation.
+- **Staff Console (`/console`)**:
+  - `src/pages/console/LoginPage.tsx`: Agent/Admin authentication with lockout protection.
+  - `src/pages/console/InboxPage.tsx`: Real-time escalation queue, SLA overdue markers, priority/reason filters, stat tiles.
+  - `src/pages/console/CaseDetailPage.tsx`: Full customer-bot-agent transcript, "Why this answer" trace inspector, refund approvals/rejections, and timeline.
+- **Widget Integration**:
+  - Chat interface is delivered via `widget/dist/widget.js`, mounted inside an isolated Shadow DOM on the storefront.
+
+---
+
+## Setup & Running (PowerShell)
 
 ```powershell
-# Navigate to the frontend directory
-cd frontend
-
 # Install dependencies
-npm install
+npm --prefix frontend install
 
-# Copy environment variables
-Copy-Item .env.example .env
+# Run unit tests (Console + Storefront)
+npm --prefix frontend test
+
+# Run development server
+npm --prefix frontend run dev
 ```
 
----
-
-## 3. Configuration
-
-By default, the frontend connects to `http://127.0.0.1:8000`. To point to a different backend:
-Edit `frontend/.env`:
-```env
-VITE_API_BASE_URL=http://127.0.0.1:8000
-```
-
----
-
-## 4. Running the Development Server
-
-```powershell
-npm run dev
-```
-
-Open `http://localhost:5173` in your browser.
-
----
-
-## 5. Verification & Testing
-
-```powershell
-# Run unit & integration tests with Vitest + React Testing Library (11 tests)
-npm test
-
-# Run ESLint validation (0 warnings, 0 errors)
-npm run lint
-
-# Production build check (TypeScript strict mode + Vite bundling)
-npm run build
-```
-
----
-
-## 6. Features & Grounded Sources Display
-
-- **Grounded Source Attribution**: When the assistant answers policy or product inquiries via RAG, retrieved items are cited in the message disclosure under "Sources", labeled with `[policy]` or `[product]` badges and exact titles.
-- **Multilingual Script Support**: Full native Unicode support for Tamil script (`\u0B80` to `\u0BFF`) and Romanized Tanglish with zero text truncation or distortion.
-- **Observability**: Collapsible Details disclosure shows detected Intent, Language, Trace ID, and Retrieved Sources.
-- **Resilience**: Real-time health banner indicator polling `/health` every 10 seconds, and retry buttons on network or server timeouts.
-- **No Third-Party Component Bloat**: Built purely with vanilla modern CSS (custom properties, responsive grid/flexbox, zero Tailwind/MUI).
+The frontend will run at `http://localhost:5173`.

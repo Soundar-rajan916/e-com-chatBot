@@ -1,12 +1,25 @@
-# Multilingual Regional E-Commerce Support Assistant (Phase 3: Admin Console & Escalations)
+# Multilingual Regional E-Commerce Platform & Support Assistant
 
-A full-stack, regional e-commerce customer support assistant powered by a FastAPI async backend, PostgreSQL with semantic vector retrieval, and a React 18 + TypeScript frontend. It supports seamless customer interactions in **English**, **Tamil (தமிழ் script)**, and **Tanglish (Tamil in Roman script)** with grounded retrieval-augmented generation (RAG) for store policies and a 2,000-item product catalog, alongside a fully operational **Admin Console** for live human supervisor handoffs, refund approvals, and audit logging.
+A full-stack, regional e-commerce platform and AI customer support assistant powered by a FastAPI async backend, PostgreSQL with semantic vector retrieval, an embeddable customer support chat widget running inside a Shadow DOM, and a React 18 + TypeScript storefront and staff escalation console. It supports seamless customer interactions in **English**, **Tamil (தமிழ் script)**, and **Tanglish (Tamil in Roman script)** with grounded retrieval-augmented generation (RAG) for store policies and a 2,000-item product catalog, alongside a fully operational **Admin Console** for live human supervisor handoffs, refund approvals, and audit logging.
 
 ---
 
 ## Architecture & Features
 
-- **Multilingual Support**: Real-time intent classification and grounded reply generation across English, Tamil, and Tanglish.
+- **Storefront & Catalog**:
+  - Full-featured e-commerce storefront with responsive design, hero banners, category filters, and product search.
+  - 2,000 seeded products across regional ethnic wear, pooja items, handicrafts, and groceries.
+  - Deterministic SVG placeholder image generator (`GET /products/{id}/image.svg`) creating unique, attractive product visuals on the fly.
+  - Cart and checkout workflows with server-side price computation and stock validation (row-locked to prevent overselling).
+  - Mock payments: Cash on Delivery (COD) and "Pay now (demo)" card with selectable success/decline simulation.
+  - Customer order management with order status progress timelines, delivery advance tools, and self-service 7-day returns.
+- **Standalone Support Chat Widget (`widget/`)**:
+  - Single embeddable bundle `dist/widget.js` (< 160 KB uncompressed, ~51 KB gzipped).
+  - Encapsulated inside an isolated Shadow DOM (`#support-chat-widget-root`) preventing CSS conflicts.
+  - Global `window.SupportWidget` API: `init`, `open`, `close`, `toggle`, `identify`, `setContext`, `clearContext`, `destroy`.
+  - Seamless anonymous session support with automatic history claiming upon customer login.
+  - Contextual awareness: seamlessly attaches active product or order context to conversations.
+  - Rich interactive actions: automatically triggers login prompts, product links, and return flows.
 - **Multilingual RAG Engine**:
   - Embedded with `intfloat/multilingual-e5-small` (384-dim).
   - Dual Vector Backend: `NumpyStore` (Windows native) and `PgVectorStore` (PostgreSQL with `pgvector` extension for Linux/Docker).
@@ -23,7 +36,6 @@ A full-stack, regional e-commerce customer support assistant powered by a FastAP
   - Orders $\le$ ₹2,000 auto-process with immediate simulated payout via `MockPaymentGateway`.
   - Orders $>$ ₹2,000 route to human supervisor approval (`pending_approval`, `requires_human=True`).
 - **Explainability & Observability**: Every message interaction logs a structured trace row in PostgreSQL containing intent, language, raw router output, retrieval hits and similarity scores, tool inputs/outputs, model names, token counts, latency, and calculated costs in INR. The response returns a `sources` array displayed in the UI.
-- **Production-Ready Evaluation & Smoke Suite**: 60-question multilingual benchmark set, automated threshold calibration script, evaluation runner ($\ge 85\%$ accuracy targets achieved), monthly cost projection report, and live end-to-end smoke test script (`smoke_admin.py`).
 
 ---
 
@@ -32,18 +44,50 @@ A full-stack, regional e-commerce customer support assistant powered by a FastAP
 ```
 ├── backend/            # FastAPI async API, Alembic migrations, database models, tests
 │   ├── app/            # Main application, config, models, schemas, services, API routers
-│   ├── alembic/        # Async database migrations (001 and 002)
+│   ├── alembic/        # Async database migrations (001, 002, 003, 004)
 │   ├── data/           # Policy markdown files (EN & TA) and 2,000-product catalog
-│   ├── eval/           # 60-question multilingual evaluation set (questions.jsonl)
-│   ├── scripts/        # Seed, product generation, ingestion, calibration, eval, and cost scripts
+│   ├── scripts/        # Seed, smoke verification, ingestion, calibration, eval scripts
 │   ├── tests/          # Pytest suite with real PostgreSQL test database
 │   └── README.md       # Detailed backend architecture and instructions
-├── frontend/           # React 18 + TypeScript + Vite web client
-│   ├── src/            # Components, hooks, API client, pages, Vitest tests
-│   └── README.md       # Detailed frontend architecture and instructions
-├── docker-compose.yml  # Docker deployment for PostgreSQL, Backend, and Frontend
+├── widget/             # Standalone chat widget library (dist/widget.js)
+│   ├── src/            # Shadow DOM mount, WidgetApp, API client, types
+│   ├── vite.config.ts  # Single-file library build configuration
+│   └── README.md       # Widget embedding and API guide
+├── frontend/           # React 18 + TypeScript + Vite storefront and staff console
+│   ├── src/            # Storefront pages, console pages, contexts, hooks, tests
+│   ├── nginx.conf      # Reverse proxy routing /api/ and serving static assets & widget.js
+│   └── README.md       # Storefront and console documentation
+├── docker-compose.yml  # Docker deployment for PostgreSQL, Redis, Backend, and Frontend
 └── README.md           # This document
 ```
+
+---
+
+## Decisions & Design Notes
+
+1. **Standalone Chat Widget Architecture**:
+   - The chat widget lives in `widget/` as an independent library project building to a single `dist/widget.js` bundle (< 160 KB uncompressed, ~51 KB gzipped).
+   - Encapsulation uses an open Shadow DOM (`#support-chat-widget-root`) with styles injected inside the shadow root, preventing host page CSS bleed and ensuring portable embeddability on any website.
+   - The global `window.SupportWidget` object controls initialization, context injection (`type: "product"` or `type: "order"`), opening/closing, and customer identification.
+
+2. **Session Cookie Isolation**:
+   - The system uses three independent, strictly isolated cookie scopes:
+     - `shop_session`: Authenticated store customers.
+     - `admin_session`: Authenticated support staff and administrators.
+     - `support_anon`: Anonymous chat visitors prior to authentication.
+   - When an unauthenticated visitor logs in, the widget's `identify()` endpoint automatically claims the anonymous session (`support_anon`), linking previous chat history to the newly authenticated customer record.
+
+3. **Deterministic SVG Placeholder Images**:
+   - To provide visually rich and responsive product images without relying on heavy external CDNs or mock image URLs, the backend generates deterministic, lightweight SVG graphics via `GET /products/{id}/image.svg`.
+   - SVG colors and geometric patterns are computed deterministically from the product's UUID, category name, and price tier.
+
+4. **Server-Side Pricing & Stock Integrity**:
+   - Cart subtotal, taxes, shipping fees, and final order totals are strictly computed on the server directly from the database catalog. The client never passes or dictates prices.
+   - Product stock quantities are decremented during checkout using row-level database locking (`SELECT ... FOR UPDATE` ordered by `product_id ASC`) to prevent deadlocks and eliminate race conditions/overselling.
+
+5. **Mock Payments & Idempotency**:
+   - Real payment card details and CVVs are strictly forbidden. The store implements Cash on Delivery (COD) and a "Pay now (demo)" card flow with selectable success/failure outcomes.
+   - All checkouts require an `Idempotency-Key` header, caching successful order responses to safely tolerate network retries without duplicate charges or duplicate orders.
 
 ---
 

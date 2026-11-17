@@ -50,132 +50,111 @@ describe('Admin Console Frontend Workflows', () => {
         }));
       }
 
-      if (url.includes('/admin/escalations/stats')) {
+      if (url.includes('/admin/orders/ORD-10001/advance')) {
         return Promise.resolve(new Response(JSON.stringify({
-          open_count: 3,
-          in_progress_count: 1,
-          resolved_count: 5,
-          overdue_count: 1,
-          unassigned_count: 2,
-          my_open_count: 1,
-          by_reason_type: { refund_pending_approval: 1, user_requested: 2 },
-          avg_response_time_seconds: 45,
-          avg_resolution_time_seconds: 320,
+          id: 'ord-1',
+          order_number: 'ORD-10001',
+          customer_id: 'cust-1',
+          customer_name: 'Priya Sharma',
+          customer_phone: '+919876543210',
+          customer_email: 'priya@example.com',
+          status: 'processing',
+          total_amount: 2999.00,
+          total_amount_inr: 2999.00,
+          placed_at: '2026-11-13T10:00:00Z',
+          delivered_at: null,
+          items_count: 1,
+          items_summary: '1x Silk Saree',
+          payment_method: 'demo_card',
+          payment_status: 'paid',
         }), {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
         }));
       }
 
-      if (url.includes('/admin/escalations/esc-123')) {
+      if (url.includes('/admin/orders/ORD-10001/cancel')) {
         return Promise.resolve(new Response(JSON.stringify({
-          escalation: {
-            id: 'esc-123',
-            session_id: 'sess-123',
+          id: 'ord-1',
+          order_number: 'ORD-10001',
+          customer_id: 'cust-1',
+          customer_name: 'Priya Sharma',
+          customer_phone: '+919876543210',
+          customer_email: 'priya@example.com',
+          status: 'cancelled',
+          total_amount: 2999.00,
+          total_amount_inr: 2999.00,
+          placed_at: '2026-11-13T10:00:00Z',
+          delivered_at: null,
+          items_count: 1,
+          items_summary: '1x Silk Saree',
+          payment_method: 'demo_card',
+          payment_status: 'paid',
+        }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }));
+      }
+
+      if (url.includes('/admin/orders')) {
+        return Promise.resolve(new Response(JSON.stringify([
+          {
+            id: 'ord-1',
+            order_number: 'ORD-10001',
             customer_id: 'cust-1',
             customer_name: 'Priya Sharma',
-            customer_phone_masked: '+9198*** **210',
-            reason: 'High-value refund request for silk saree',
-            reason_type: 'refund_pending_approval',
-            status: 'open',
-            priority: 'high',
-            assigned_to: null,
-            assigned_agent_name: null,
-            refund_id: 'refund-1',
-            order_number: 'ORD-10001',
-            is_overdue: true,
-            version: 1,
-            created_at: '2026-11-13T10:00:00Z',
-            updated_at: '2026-11-13T10:00:00Z',
-            first_response_at: null,
-            resolved_at: null,
-            resolution_note: null,
+            customer_phone: '+919876543210',
+            customer_email: 'priya@example.com',
+            status: 'placed',
+            total_amount: 2999.00,
+            total_amount_inr: 2999.00,
+            placed_at: '2026-11-13T10:00:00Z',
+            delivered_at: null,
+            items_count: 1,
+            items_summary: '1x Silk Saree',
+            payment_method: 'demo_card',
+            payment_status: 'paid',
           },
-          customer: {
-            id: 'cust-1',
-            name: 'Priya Sharma',
-            phone: '+919876543210',
-            preferred_language: 'en',
-            created_at: '2026-11-01T00:00:00Z',
-          },
-          recent_orders: [
-            {
-              id: 'ord-1',
-              order_number: 'ORD-10001',
-              status: 'delivered',
-              total_amount_inr: '2999.00',
-              created_at: '2026-11-08T00:00:00Z',
-              items: [{ product_title: 'Silk Saree', quantity: 1, unit_price_inr: '2999.00' }],
-            },
-          ],
-          refund: {
+        ]), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }));
+      }
+
+      if (url.includes('/admin/refunds/refund-1/approve')) {
+        return Promise.resolve(new Response(JSON.stringify({
+          id: 'refund-1',
+          order_id: 'ord-1',
+          order_number: 'ORD-10001',
+          customer_id: 'cust-1',
+          customer_name: 'Priya Sharma',
+          amount: 2999.00,
+          amount_inr: 2999.00,
+          reason: 'Damaged item',
+          status: 'processed',
+          created_at: '2026-11-13T10:00:00Z',
+          decided_by: 'agent:admin@example.com',
+        }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }));
+      }
+
+      if (url.includes('/admin/refunds')) {
+        return Promise.resolve(new Response(JSON.stringify([
+          {
             id: 'refund-1',
             order_id: 'ord-1',
             order_number: 'ORD-10001',
-            amount: '2999.00',
-            reason: 'Damaged item',
+            customer_id: 'cust-1',
+            customer_name: 'Priya Sharma',
+            amount: 2999.00,
+            amount_inr: 2999.00,
+            reason: 'Damaged item on delivery',
             status: 'pending_approval',
             created_at: '2026-11-13T10:00:00Z',
           },
-          messages: [
-            {
-              id: 'msg-1',
-              session_id: 'sess-123',
-              role: 'user',
-              content: 'I want a refund for ORD-10001',
-              agent_id: null,
-              agent_name: null,
-              input_mode: 'text',
-              created_at: '2026-11-13T10:00:00Z',
-            },
-          ],
-          traces: [],
-          notes: [],
-          events: [
-            {
-              id: 'ev-1',
-              actor_type: 'system',
-              actor_id: null,
-              actor_name: 'System',
-              action: 'created',
-              detail: {},
-              created_at: '2026-11-13T10:00:00Z',
-            },
-          ],
-        }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        }));
-      }
-
-      if (url.includes('/admin/escalations')) {
-        return Promise.resolve(new Response(JSON.stringify({
-          items: [
-            {
-              id: 'esc-123',
-              session_id: 'sess-123',
-              customer_id: 'cust-1',
-              customer_name: 'Priya Sharma',
-              customer_phone_masked: '+9198*** **210',
-              reason: 'High-value refund request for silk saree',
-              reason_type: 'refund_pending_approval',
-              status: 'open',
-              priority: 'high',
-              assigned_to: null,
-              assigned_agent_name: null,
-              refund_id: 'refund-1',
-              order_number: 'ORD-10001',
-              is_overdue: true,
-              version: 1,
-              created_at: '2026-11-13T10:00:00Z',
-              updated_at: '2026-11-13T10:00:00Z',
-              first_response_at: null,
-              resolved_at: null,
-              resolution_note: null,
-            },
-          ],
-          total: 1,
-        }), {
+        ]), {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
         }));
@@ -189,7 +168,7 @@ describe('Admin Console Frontend Workflows', () => {
     vi.restoreAllMocks();
   });
 
-  it('renders login page when clicking Console tab and logs in successfully', async () => {
+  it('renders login page and displays streamlined Admin Console with only All Orders and Refunds', async () => {
     render(<App />);
 
     // Click Console nav link
@@ -208,40 +187,70 @@ describe('Admin Console Frontend Workflows', () => {
     const submitBtn = screen.getByText('Sign In to Console');
     fireEvent.click(submitBtn);
 
-    // Should transition to Support Operations Inbox
+    // Should show the streamlined Admin Console with All Orders active by default
     await waitFor(() => {
-      expect(screen.getByText('Support Operations Inbox')).toBeInTheDocument();
-      expect(screen.getByText('Open Cases')).toBeInTheDocument();
-      expect(screen.getByText('Priya Sharma')).toBeInTheDocument();
-      expect(screen.getByText('+9198*** **210')).toBeInTheDocument();
+      expect(screen.getByText('Regional Bazaar Store Management')).toBeInTheDocument();
+      expect(screen.getByText('Store Orders Management')).toBeInTheDocument();
+      expect(screen.getByText('ORD-10001')).toBeInTheDocument();
+      expect(screen.getByText('Push to Processing ➔')).toBeInTheDocument();
+    });
+
+    // Confirm that Support Tickets section has been removed completely
+    expect(screen.queryByText('Support Tickets')).not.toBeInTheDocument();
+    expect(screen.queryByText('Support Operations Inbox')).not.toBeInTheDocument();
+    expect(screen.queryByText('Open Cases')).not.toBeInTheDocument();
+
+    // Check Refunds tab
+    const refundsTab = screen.getByText('Refunds');
+    fireEvent.click(refundsTab);
+
+    await waitFor(() => {
+      expect(screen.getByText('Refunds & Returns Hub')).toBeInTheDocument();
+      expect(screen.getByText('RETURN AMOUNT')).toBeInTheDocument();
+      expect(screen.getByText('REASON OF RETURN')).toBeInTheDocument();
+      expect(screen.getByText(/"Damaged item on delivery"/)).toBeInTheDocument();
+      expect(screen.getByText('✓ Approve Refund')).toBeInTheDocument();
     });
   });
 
-  it('navigates to case detail workspace and displays unmasked phone, orders, and refund action', async () => {
+  it('allows advancing order stages in the All Orders tab', async () => {
     render(<App />);
 
-    // Click Console nav link
     fireEvent.click(screen.getByText('Console'));
     await waitFor(() => expect(screen.getByText('Support Agent Login')).toBeInTheDocument());
-
-    // Login
     fireEvent.click(screen.getByText('👑 Demo Admin'));
     fireEvent.click(screen.getByText('Sign In to Console'));
 
-    await waitFor(() => expect(screen.getByText('Support Operations Inbox')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('Store Orders Management')).toBeInTheDocument());
 
-    // Click Open Case button
-    const openBtn = screen.getByText('Open Case');
-    fireEvent.click(openBtn);
+    // Click advance stage
+    const advanceBtn = screen.getByText('Push to Processing ➔');
+    fireEvent.click(advanceBtn);
 
-    // Should be in case workspace
     await waitFor(() => {
-      expect(screen.getByText(/Case #esc-123/)).toBeInTheDocument();
-      expect(screen.getByText('+919876543210')).toBeInTheDocument(); // Unmasked in detail
-      expect(screen.getByText('Recent Orders (1)')).toBeInTheDocument();
-      expect(screen.getByText('Linked Refund Action')).toBeInTheDocument();
-      expect(screen.getByText('✅ Approve & Payout')).toBeInTheDocument();
-      expect(screen.getByText('Conversation Transcript')).toBeInTheDocument();
+      expect(screen.getByText(/Order ORD-10001 advanced to PROCESSING/i)).toBeInTheDocument();
+    });
+  });
+
+  it('allows approving refunds in the Refunds tab', async () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByText('Console'));
+    await waitFor(() => expect(screen.getByText('Support Agent Login')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('👑 Demo Admin'));
+    fireEvent.click(screen.getByText('Sign In to Console'));
+
+    // Switch to Refunds tab
+    await waitFor(() => expect(screen.getByText('Refunds')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('Refunds'));
+
+    await waitFor(() => expect(screen.getByText('✓ Approve Refund')).toBeInTheDocument());
+
+    // Approve the pending refund
+    fireEvent.click(screen.getByText('✓ Approve Refund'));
+
+    await waitFor(() => {
+      expect(screen.getByText(/approved and paid successfully/i)).toBeInTheDocument();
     });
   });
 });

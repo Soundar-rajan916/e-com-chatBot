@@ -200,3 +200,159 @@ export interface EscalationFullDetail {
   notes: EscalationNoteItem[];
   events: EscalationEventItem[];
 }
+
+// ==========================================
+// E-Commerce Store & Customer Types
+// ==========================================
+
+export interface CustomerAccount {
+  id: string;
+  email: string;
+  name: string;
+  phone: string;
+  preferred_language: string;
+  created_at: string;
+}
+
+export interface StoreConfig {
+  store_name: string;
+  return_window_days: number;
+  supported_languages: string[];
+  dev_tools: boolean;
+  chat_widget_enabled: boolean;
+}
+
+export interface StorePolicy {
+  policy_name: string;
+  language: string;
+  content_markdown: string;
+  updated_at: string;
+}
+
+export interface CategoryItem {
+  category: string;
+  count?: number;
+  min_price?: string;
+  max_price?: string;
+  icon?: string;
+}
+
+export interface ProductItem {
+  id: string;
+  sku: string;
+  title: string;
+  title_ta?: string | null;
+  description?: string | null;
+  description_ta?: string | null;
+  category: string;
+  price_inr: string | number;
+  stock: number;
+  is_active: boolean;
+  rating?: number | null;
+  image_url?: string;
+}
+
+export interface ProductListResponse {
+  items: ProductItem[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
+export interface CartItemDetail {
+  product_id: string;
+  sku: string;
+  title: string;
+  title_ta?: string | null;
+  price_inr: string | number;
+  quantity: number;
+  subtotal_inr: string | number;
+  in_stock: boolean;
+  stock_available: number;
+  image_url?: string;
+}
+
+export interface CartDetail {
+  items: CartItemDetail[];
+  total_items: number;
+  subtotal_inr: string | number;
+  shipping_fee_inr: string | number;
+  total_inr: string | number;
+  is_checkout_ready: boolean;
+}
+
+export interface OrderStatusHistoryItem {
+  id: string;
+  status: string;
+  note?: string | null;
+  created_at: string;
+}
+
+export interface OrderItemDetail {
+  id: string;
+  product_id: string;
+  title: string;
+  quantity: number;
+  unit_price_inr: string | number;
+  subtotal_inr: string | number;
+}
+
+export interface OrderDetail {
+  id: string;
+  order_number: string;
+  status: string;
+  total_amount_inr: string | number;
+  payment_method: string;
+  payment_status: string;
+  shipping_address: {
+    full_name: string;
+    street: string;
+    city: string;
+    state: string;
+    pincode: string;
+  };
+  is_cancellable: boolean;
+  is_returnable: boolean;
+  days_since_delivery: number | null;
+  delivered_at: string | null;
+  cancelled_at: string | null;
+  cancellation_reason: string | null;
+  created_at: string;
+  items: OrderItemDetail[];
+  status_history: OrderStatusHistoryItem[];
+  refund?: LinkedRefundDetail | null;
+}
+
+export interface AdminOrderSummary {
+  id: string;
+  order_number: string;
+  customer_id: string;
+  customer_name: string;
+  customer_phone: string;
+  customer_email: string;
+  status: string;
+  total_amount: number | string;
+  total_amount_inr?: number | string;
+  placed_at: string;
+  delivered_at: string | null;
+  items_count: number;
+  items_summary: string;
+  payment_method: string;
+  payment_status: string;
+}
+
+export interface AdminRefundSummary {
+  id: string;
+  order_id: string;
+  order_number: string;
+  customer_id: string;
+  customer_name: string;
+  amount: number | string;
+  amount_inr?: number | string;
+  reason: string;
+  status: string;
+  created_at: string;
+  decided_by?: string | null;
+}
+

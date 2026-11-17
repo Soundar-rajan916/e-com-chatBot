@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Standalone Support Widget Demo</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 40px;
+      background: #f8fafc;
+      color: #0f172a;
+    }
+    .demo-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 32px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+    h1 { margin-top: 0; }
+    .btn-group { display: flex; gap: 10px; margin: 20px 0; flex-wrap: wrap; }
+    button {
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    button.primary { background: #4f46e5; color: white; border-color: #4f46e5; }
+    button:hover { opacity: 0.9; }
+    pre { background: #0f172a; color: #f8fafc; padding: 16px; border-radius: 8px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="demo-container">
+    <h1>🛍️ Standalone Support Widget Demo</h1>
+    <p>This static HTML page demonstrates the embeddable AI Support Widget running in complete isolation within a Shadow DOM.</p>
+
+    <h3>Widget Controls</h3>
+    <div class="btn-group">
+      <button class="primary" onclick="window.SupportWidget.open()">Open Widget</button>
+      <button onclick="window.SupportWidget.close()">Close Widget</button>
+      <button onclick="window.SupportWidget.setLocale('ta')">Switch to தமிழ்</button>
+      <button onclick="window.SupportWidget.setLocale('en')">Switch to English</button>
+      <button onclick="window.SupportWidget.setContext({ type: 'product', id: 'PROD-101', title: 'Kanchipuram Silk Saree' })">Pin Product Context</button>
+      <button onclick="window.SupportWidget.setContext({ type: 'order', id: 'ORD-10001' })">Pin Order Context</button>
+      <button onclick="window.SupportWidget.setContext({ type: 'none' })">Clear Context</button>
+    </div>
+
+    <h3>Embedding Snippet</h3>
+    <pre><code>&lt;script src="/widget.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  window.SupportWidget.init({
+    apiUrl: '/api',
+    storeName: 'Regional Support',
+    initialLocale: 'en'
+  });
+&lt;/script&gt;</code></pre>
+  </div>
+
+  <!-- Load and initialize widget -->
+  <script src="./dist/widget.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.SupportWidget) {
+        window.SupportWidget.init({
+          apiUrl: 'http://localhost:8000',
+          storeName: 'Demo Store',
+          initialLocale: 'en',
+          onAction: (act) => {
+            console.log('Action received from widget:', act);
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

@@ -52,11 +52,13 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    volumes:
+      - hfcache:/root/.cache/huggingface
 
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: frontend/Dockerfile
     container_name: ecom_frontend
     restart: always
     ports:
@@ -67,3 +69,4 @@ services:
 volumes:
   pgdata:
   redisdata:
+  hfcache:
