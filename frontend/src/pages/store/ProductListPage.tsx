@@ -6,6 +6,20 @@ import { useCart } from '../../context/CartContext';
 import { useSupportWidget } from '../../hooks/useSupportWidget';
 import { getProductImageUrl, handleProductImageError } from '../../utils/productImages';
 
+const formatCategoryTitle = (catKey: string): string => {
+  const map: Record<string, string> = {
+    formal_shirts: 'Formal Shirts',
+    casual_shirts: 'Casual & Linen',
+    tshirts_polos: 'Polos & T-Shirts',
+    trousers_chinos: 'Trousers & Chinos',
+    blazers_suits: 'Blazers & Suits',
+    dhotis_ethnic: 'Dhotis & Ethnic',
+    footwear: 'Footwear & Loafers',
+    accessories: 'Leather & Accessories',
+  };
+  return map[catKey] || catKey.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+};
+
 export const ProductListPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState<ProductItem[]>([]);
@@ -117,7 +131,7 @@ export const ProductListPage: React.FC = () => {
                   className={`filter-option-btn ${category === cat.category ? 'active' : ''}`}
                   onClick={() => updateParam('category', cat.category)}
                 >
-                  {cat.icon ? `${cat.icon} ` : ''}{cat.category.replace(/_/g, ' ')}
+                  {cat.icon ? `${cat.icon} ` : ''}{formatCategoryTitle(cat.category)}
                   {cat.count !== undefined ? ` (${cat.count})` : ''}
                 </button>
               ))}

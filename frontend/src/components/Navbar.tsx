@@ -153,28 +153,46 @@ export const Navbar: React.FC = () => {
               Products
             </NavLink>
             <NavLink
-              to="/products?category=mens_wear"
+              to="/products?category=formal_shirts"
               className={({ isActive }) => `store-nav-link ${isActive ? 'active' : ''}`}
             >
-              Shirts &amp; Linen
+              Formal Shirts
             </NavLink>
             <NavLink
-              to="/products?category=sarees_ethnic"
+              to="/products?category=casual_shirts"
+              className={({ isActive }) => `store-nav-link ${isActive ? 'active' : ''}`}
+            >
+              Casual &amp; Linen
+            </NavLink>
+            <NavLink
+              to="/products?category=dhotis_ethnic"
               className={({ isActive }) => `store-nav-link ${isActive ? 'active' : ''}`}
             >
               Dhotis &amp; Ethnic
             </NavLink>
             <NavLink
-              to="/products?category=mens_wear"
+              to="/products?category=trousers_chinos"
               className={({ isActive }) => `store-nav-link ${isActive ? 'active' : ''}`}
             >
               Trousers &amp; Chinos
+            </NavLink>
+            <NavLink
+              to="/products?category=blazers_suits"
+              className={({ isActive }) => `store-nav-link ${isActive ? 'active' : ''}`}
+            >
+              Blazers &amp; Suits
             </NavLink>
             <NavLink
               to="/products?category=footwear"
               className={({ isActive }) => `store-nav-link ${isActive ? 'active' : ''}`}
             >
               Footwear
+            </NavLink>
+            <NavLink
+              to="/products?category=accessories"
+              className={({ isActive }) => `store-nav-link ${isActive ? 'active' : ''}`}
+            >
+              Accessories
             </NavLink>
             {customer && (
               <NavLink

@@ -27,6 +27,89 @@ categories_router = APIRouter(tags=["products"])
 
 # Color palettes and SVG vector art generators by category
 CATEGORY_CONFIG = {
+    "formal_shirts": {
+        "color1": "#0f172a",
+        "color2": "#1e3a8a",
+        "svg_art": """<g transform="translate(165, 50)" fill="#ffffff">
+      <path d="M10 8 L60 8 L55 78 L15 78 Z" fill="#3b82f6" rx="4" />
+      <polygon points="24,8 35,32 46,8" fill="#ffffff" />
+      <polygon points="32,15 38,15 36,65 34,65" fill="#dc2626" />
+      <circle cx="35" cy="40" r="2" fill="#ffffff" />
+      <circle cx="35" cy="52" r="2" fill="#ffffff" />
+    </g>""",
+    },
+    "casual_shirts": {
+        "color1": "#065f46",
+        "color2": "#0d9488",
+        "svg_art": """<g transform="translate(165, 50)" fill="#ffffff">
+      <path d="M12 10 L58 10 L54 78 L16 78 Z" fill="#10b981" rx="4" />
+      <polygon points="20,10 35,26 50,10" fill="#ecfdf5" />
+      <circle cx="35" cy="38" r="2.5" fill="#ffffff" />
+      <circle cx="35" cy="52" r="2.5" fill="#ffffff" />
+      <circle cx="35" cy="66" r="2.5" fill="#ffffff" />
+    </g>""",
+    },
+    "tshirts_polos": {
+        "color1": "#1e293b",
+        "color2": "#475569",
+        "svg_art": """<g transform="translate(165, 52)" fill="#ffffff">
+      <path d="M15 12 L55 12 L50 76 L20 76 Z" fill="#64748b" rx="4" />
+      <path d="M5 20 L15 12 L15 36 L7 34 Z" fill="#475569" />
+      <path d="M65 20 L55 12 L55 36 L63 34 Z" fill="#475569" />
+      <polygon points="28,12 35,22 42,12" fill="#f8fafc" />
+    </g>""",
+    },
+    "trousers_chinos": {
+        "color1": "#3b2716",
+        "color2": "#78350f",
+        "svg_art": """<g transform="translate(165, 50)" fill="#ffffff">
+      <path d="M16 10 L54 10 L50 78 L38 78 L35 36 L32 78 L20 78 Z" fill="#d97706" rx="2" />
+      <line x1="16" y1="18" x2="54" y2="18" stroke="#ffffff" stroke-width="2" />
+      <line x1="35" y1="18" x2="35" y2="34" stroke="#ffffff" stroke-width="1.5" />
+    </g>""",
+    },
+    "blazers_suits": {
+        "color1": "#1e1b4b",
+        "color2": "#312e81",
+        "svg_art": """<g transform="translate(165, 48)" fill="#ffffff">
+      <path d="M12 12 L58 12 L52 80 L18 80 Z" fill="#4338ca" rx="4" />
+      <polygon points="26,12 35,46 44,12" fill="#ffffff" />
+      <polygon points="32,22 38,22 36,58 34,58" fill="#e11d48" />
+      <rect x="42" y="32" width="8" height="2" fill="#ffffff" />
+      <circle cx="35" cy="58" r="2.5" fill="#fbbf24" />
+      <circle cx="35" cy="70" r="2.5" fill="#fbbf24" />
+    </g>""",
+    },
+    "dhotis_ethnic": {
+        "color1": "#78350f",
+        "color2": "#b45309",
+        "svg_art": """<g transform="translate(165, 50)" fill="#ffffff">
+      <rect x="18" y="12" width="34" height="68" rx="2" fill="#fef3c7" />
+      <rect x="18" y="12" width="6" height="68" fill="#fbbf24" />
+      <line x1="24" y1="12" x2="24" y2="80" stroke="#d97706" stroke-width="1" />
+      <line x1="38" y1="12" x2="38" y2="80" stroke="#f59e0b" stroke-dasharray="3 3" />
+    </g>""",
+    },
+    "footwear": {
+        "color1": "#451a03",
+        "color2": "#78350f",
+        "svg_art": """<g transform="translate(160, 56)" fill="#ffffff">
+      <path d="M8 32 C12 18 30 18 42 22 L62 26 C72 32 72 44 68 46 L8 46 Z" fill="#92400e" />
+      <rect x="6" y="44" width="64" height="8" rx="2" fill="#451a03" />
+      <rect x="8" y="50" width="16" height="6" fill="#1c1917" />
+    </g>""",
+    },
+    "accessories": {
+        "color1": "#18181b",
+        "color2": "#3f3f46",
+        "svg_art": """<g transform="translate(165, 52)" fill="#ffffff">
+      <circle cx="35" cy="38" r="20" stroke="#fbbf24" stroke-width="3" fill="#27272a" />
+      <line x1="35" y1="38" x2="35" y2="24" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" />
+      <line x1="35" y1="38" x2="44" y2="38" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" />
+      <rect x="30" y="4" width="10" height="14" fill="#52525b" rx="2" />
+      <rect x="30" y="58" width="10" height="14" fill="#52525b" rx="2" />
+    </g>""",
+    },
     "mens_wear": {
         "color1": "#0f172a",
         "color2": "#1e3a8a",
@@ -175,6 +258,30 @@ def get_category_config(category: str) -> dict[str, str]:
         if key in cat_lower:
             return val
     return DEFAULT_CONFIG
+
+
+CATEGORY_ICONS = {
+    "formal_shirts": "👔",
+    "casual_shirts": "🌿",
+    "tshirts_polos": "👕",
+    "trousers_chinos": "👖",
+    "blazers_suits": "🧥",
+    "dhotis_ethnic": "🥻",
+    "footwear": "👞",
+    "accessories": "⌚",
+    "mens_wear": "👔",
+}
+
+
+def get_category_palette(category: str) -> tuple[str, str, str]:
+    cfg = get_category_config(category)
+    cat_lower = category.lower().strip()
+    icon = "👔"
+    for key, ic in CATEGORY_ICONS.items():
+        if key in cat_lower:
+            icon = ic
+            break
+    return (cfg["color1"], cfg["color2"], icon)
 
 
 def generate_product_svg(product_id: str, name: str, category: str, price: Decimal) -> str:

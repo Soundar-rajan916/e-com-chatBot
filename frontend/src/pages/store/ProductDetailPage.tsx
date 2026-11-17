@@ -129,6 +129,112 @@ export const ProductDetailPage: React.FC = () => {
             )}
           </div>
 
+          {/* Men's Size Selection */}
+          <div className="detail-size-selection" style={{ margin: '16px 0' }}>
+            <div className="size-label-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 600 }}>
+              <span className="size-title">Select Size:</span>
+              <span className="size-guide-hint" style={{ color: '#0d9488', cursor: 'pointer' }}>📏 Men's Fit Guide</span>
+            </div>
+            <div className="size-pills-row" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {['formal_shirts', 'casual_shirts', 'tshirts_polos', 'blazers_suits', 'mens_wear'].includes(product.category) ? (
+                ['38 (S)', '40 (M)', '42 (L)', '44 (XL)', '46 (XXL)'].map((sz, idx) => (
+                  <button
+                    key={sz}
+                    type="button"
+                    className="size-pill-btn"
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: '6px',
+                      border: idx === 1 ? '2px solid #0f172a' : '1px solid #cbd5e1',
+                      background: idx === 1 ? '#0f172a' : '#ffffff',
+                      color: idx === 1 ? '#ffffff' : '#1e293b',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {sz}
+                  </button>
+                ))
+              ) : product.category === 'trousers_chinos' ? (
+                ['30W', '32W', '34W', '36W', '38W'].map((sz, idx) => (
+                  <button
+                    key={sz}
+                    type="button"
+                    className="size-pill-btn"
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: '6px',
+                      border: idx === 1 ? '2px solid #0f172a' : '1px solid #cbd5e1',
+                      background: idx === 1 ? '#0f172a' : '#ffffff',
+                      color: idx === 1 ? '#ffffff' : '#1e293b',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {sz}
+                  </button>
+                ))
+              ) : product.category === 'footwear' ? (
+                ['UK 7', 'UK 8', 'UK 9', 'UK 10', 'UK 11'].map((sz, idx) => (
+                  <button
+                    key={sz}
+                    type="button"
+                    className="size-pill-btn"
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: '6px',
+                      border: idx === 1 ? '2px solid #0f172a' : '1px solid #cbd5e1',
+                      background: idx === 1 ? '#0f172a' : '#ffffff',
+                      color: idx === 1 ? '#ffffff' : '#1e293b',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {sz}
+                  </button>
+                ))
+              ) : product.category === 'dhotis_ethnic' ? (
+                ['4 Mulam (Single)', '8 Mulam (Double / Wedding)', '9x5 Panchakacham'].map((sz, idx) => (
+                  <button
+                    key={sz}
+                    type="button"
+                    className="size-pill-btn"
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: '6px',
+                      border: idx === 1 ? '2px solid #0f172a' : '1px solid #cbd5e1',
+                      background: idx === 1 ? '#0f172a' : '#ffffff',
+                      color: idx === 1 ? '#ffffff' : '#1e293b',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {sz}
+                  </button>
+                ))
+              ) : (
+                ['One Size / Regular'].map((sz) => (
+                  <button
+                    key={sz}
+                    type="button"
+                    className="size-pill-btn"
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: '6px',
+                      border: '2px solid #0f172a',
+                      background: '#0f172a',
+                      color: '#ffffff',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {sz}
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+
           {/* Purchasing actions */}
           <div className="detail-purchase-controls">
             {productStock > 0 && remainingStock > 0 && (

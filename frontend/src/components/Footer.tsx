@@ -32,22 +32,31 @@ export const Footer: React.FC = () => {
 
         {/* Shop Column */}
         <div className="footer-col">
-          <h4 className="footer-heading">Men's Collection</h4>
+          <h4 className="footer-heading">Men's Departments</h4>
           <ul className="footer-links">
             <li>
-              <Link to="/products">All Categories</Link>
+              <Link to="/products">All Men's Wear</Link>
             </li>
             <li>
-              <Link to="/products?category=mens_wear">Formal &amp; Linen Shirts</Link>
+              <Link to="/products?category=formal_shirts">Formal Shirts</Link>
             </li>
             <li>
-              <Link to="/products?category=sarees_ethnic">Silk Dhotis &amp; Kurtas</Link>
+              <Link to="/products?category=casual_shirts">Casual &amp; Linen</Link>
             </li>
             <li>
-              <Link to="/products?category=mens_wear">Trousers &amp; Chinos</Link>
+              <Link to="/products?category=dhotis_ethnic">Silk Dhotis &amp; Ethnic</Link>
+            </li>
+            <li>
+              <Link to="/products?category=trousers_chinos">Trousers &amp; Chinos</Link>
+            </li>
+            <li>
+              <Link to="/products?category=blazers_suits">Blazers &amp; Suits</Link>
             </li>
             <li>
               <Link to="/products?category=footwear">Leather Shoes &amp; Loafers</Link>
+            </li>
+            <li>
+              <Link to="/products?category=accessories">Leather Belts &amp; Accessories</Link>
             </li>
           </ul>
         </div>

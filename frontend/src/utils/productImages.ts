@@ -1,46 +1,38 @@
 import { getBaseUrl } from '../api/client';
 
-// Curated high-resolution lifestyle product photos for key catalog types (Men's Wear focus)
+// Curated high-resolution lifestyle product photos for key catalog types (100% Men's Wear focus)
 const CURATED_PRODUCT_PHOTOS: Array<{ keywords: string[]; url: string }> = [
   {
-    keywords: ['dhoti', 'vesti', 'lungi', 'angavastram', 'veshti'],
+    keywords: ['dhoti', 'vesti', 'lungi', 'angavastram', 'veshti', 'ethnic', 'panchakacham'],
     url: '/images/hero/dhoti.svg',
   },
   {
-    keywords: ['blazer', 'suit', 'jacket', 'tuxedo'],
+    keywords: ['blazer', 'suit', 'jacket', 'tuxedo', 'waistcoat', 'nehru'],
     url: '/images/hero/blazer.svg',
   },
   {
-    keywords: ['linen', 'linen shirt', 'casual shirt', 'cotton shirt'],
-    url: 'https://images.unsplash.com/photo-1598033129183-c4f50c736f10?auto=format&fit=crop&w=600&q=80',
+    keywords: ['linen', 'linen shirt', 'casual shirt', 'mandarin', 'chambray', 'resort'],
+    url: '/images/hero/shirt.svg',
   },
   {
-    keywords: ['formal shirt', 'office shirt', 'dress shirt', 'oxford shirt'],
-    url: 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?auto=format&fit=crop&w=600&q=80',
+    keywords: ['formal shirt', 'office shirt', 'dress shirt', 'oxford shirt', 'poplin', 'twill'],
+    url: '/images/categories/formal_shirts.svg',
   },
   {
-    keywords: ['trouser', 'chinos', 'pants', 'formal pants', 'khaki'],
-    url: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&w=600&q=80',
+    keywords: ['trouser', 'chinos', 'pants', 'formal pants', 'khaki', 'gurkha', 'pleated'],
+    url: '/images/hero/trousers.svg',
   },
   {
-    keywords: ['polo', 't-shirt', 'tshirt', 'crewneck', 'tee'],
-    url: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=600&q=80',
+    keywords: ['polo', 't-shirt', 'tshirt', 'crewneck', 'tee', 'henley'],
+    url: '/images/hero/polo.svg',
   },
   {
-    keywords: ['shoe', 'oxford', 'leather', 'loafers', 'brogues', 'footwear', 'chappals', 'sandals', 'running'],
-    url: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=600&q=80',
+    keywords: ['shoe', 'oxford', 'leather', 'loafers', 'brogues', 'footwear', 'chappals', 'sandals', 'running', 'moccasin'],
+    url: '/images/hero/shoes.svg',
   },
   {
-    keywords: ['belt', 'wallet', 'watch', 'tie', 'cufflink', 'accessory'],
-    url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    keywords: ['kurti', 'kurta', 'silk', 'kanchipuram', 'ethnic'],
-    url: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    keywords: ['headphone', 'wireless', 'audio'],
-    url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80',
+    keywords: ['belt', 'wallet', 'watch', 'tie', 'cufflink', 'accessory', 'cardholder', 'pocket square'],
+    url: '/images/hero/accessories.svg',
   },
 ];
 
@@ -76,14 +68,25 @@ export const TESTIMONIAL_AVATARS = {
 };
 
 export const CATEGORY_PHOTOS: Record<string, string> = {
+  'formal_shirts': '/images/categories/formal_shirts.svg',
+  'casual_shirts': '/images/categories/linen.svg',
+  'tshirts_polos': '/images/categories/polos.svg',
+  'trousers_chinos': '/images/categories/trousers.svg',
+  'blazers_suits': '/images/categories/blazers.svg',
+  'dhotis_ethnic': '/images/categories/dhotis.svg',
+  'footwear': '/images/categories/footwear.svg',
+  'accessories': '/images/categories/accessories.svg',
   'Formal Shirts': '/images/categories/formal_shirts.svg',
   'Casual Linen': '/images/categories/linen.svg',
+  'Dhotis & Ethnic': '/images/categories/dhotis.svg',
   'Dhotis & Veshtis': '/images/categories/dhotis.svg',
   'Trousers & Chinos': '/images/categories/trousers.svg',
   'Blazers & Suits': '/images/categories/blazers.svg',
   'Polos & T-Shirts': '/images/categories/polos.svg',
   'Footwear & Loafers': '/images/categories/footwear.svg',
   'Accessories': '/images/categories/accessories.svg',
+  'mens_wear': '/images/categories/formal_shirts.svg',
+  'View All': '/images/categories/all.svg',
   // Backward-compatible aliases
   'Handloom & Silks': '/images/categories/dhotis.svg',
   'Cookware': '/images/categories/formal_shirts.svg',
@@ -92,7 +95,6 @@ export const CATEGORY_PHOTOS: Record<string, string> = {
   'Filter Coffee': '/images/categories/blazers.svg',
   'Traditional Sweets': '/images/categories/polos.svg',
   'Artisan Crafts': '/images/categories/footwear.svg',
-  'View All': '/images/categories/all.svg',
 };
 
 /**

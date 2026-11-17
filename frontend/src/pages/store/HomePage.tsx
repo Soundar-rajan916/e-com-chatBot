@@ -38,17 +38,9 @@ export const HomePage: React.FC = () => {
           getStorePolicy('en').catch(() => null),
         ]);
         setCategories(Array.isArray(cats) ? cats : []);
-        // Prioritize Men's wear items for the curated top picks
+        // Store is 100% exclusive Men's Wear
         const allItems = prodsRes && Array.isArray(prodsRes.items) ? prodsRes.items : [];
-        const mensItems = allItems.filter(
-          (p) =>
-            p.category?.toLowerCase().includes('men') ||
-            p.category?.toLowerCase().includes('footwear') ||
-            ['shirt', 'kurta', 'dhoti', 'blazer', 'trouser', 'shoe', 'vesti', 'lungi', 'sandal'].some((kw) =>
-              (p.title || '').toLowerCase().includes(kw)
-            )
-        );
-        setFeaturedProducts(mensItems.length >= 4 ? mensItems : allItems);
+        setFeaturedProducts(allItems);
         setPolicy(pol);
       } catch (err) {
         console.error('Failed to load homepage data', err);
@@ -69,14 +61,15 @@ export const HomePage: React.FC = () => {
 
   // Dedicated Men's Wear Category Shortcuts
   const categoryShortcuts = [
-    { name: 'Formal Shirts', cat: 'mens_wear', image: CATEGORY_PHOTOS['Formal Shirts'], bg: '#e0f2fe', border: '#bae6fd' },
-    { name: 'Casual Linen', cat: 'mens_wear', image: CATEGORY_PHOTOS['Casual Linen'], bg: '#f0fdf4', border: '#bbf7d0' },
-    { name: 'Dhotis & Veshtis', cat: 'sarees_ethnic', image: CATEGORY_PHOTOS['Dhotis & Veshtis'], bg: '#fffbeb', border: '#fef08a' },
-    { name: 'Trousers & Chinos', cat: 'mens_wear', image: CATEGORY_PHOTOS['Trousers & Chinos'], bg: '#f8fafc', border: '#e2e8f0' },
-    { name: 'Blazers & Suits', cat: 'mens_wear', image: CATEGORY_PHOTOS['Blazers & Suits'], bg: '#f1f5f9', border: '#cbd5e1' },
-    { name: 'Polos & T-Shirts', cat: 'mens_wear', image: CATEGORY_PHOTOS['Polos & T-Shirts'], bg: '#fef2f2', border: '#fecaca' },
-    { name: 'Footwear & Loafers', cat: 'footwear', image: CATEGORY_PHOTOS['Footwear & Loafers'], bg: '#fff7ed', border: '#fed7aa' },
-    { name: 'Accessories', cat: 'mens_wear', image: CATEGORY_PHOTOS['Accessories'], bg: '#f5f3ff', border: '#ddd6fe' },
+    { name: 'Formal Shirts', cat: 'formal_shirts', image: CATEGORY_PHOTOS['formal_shirts'], bg: '#e0f2fe', border: '#bae6fd' },
+    { name: 'Casual Linen', cat: 'casual_shirts', image: CATEGORY_PHOTOS['casual_shirts'], bg: '#f0fdf4', border: '#bbf7d0' },
+    { name: 'Dhotis & Ethnic', cat: 'dhotis_ethnic', image: CATEGORY_PHOTOS['dhotis_ethnic'], bg: '#fffbeb', border: '#fef08a' },
+    { name: 'Trousers & Chinos', cat: 'trousers_chinos', image: CATEGORY_PHOTOS['trousers_chinos'], bg: '#f8fafc', border: '#e2e8f0' },
+    { name: 'Blazers & Suits', cat: 'blazers_suits', image: CATEGORY_PHOTOS['blazers_suits'], bg: '#f1f5f9', border: '#cbd5e1' },
+    { name: 'Polos & T-Shirts', cat: 'tshirts_polos', image: CATEGORY_PHOTOS['tshirts_polos'], bg: '#fef2f2', border: '#fecaca' },
+    { name: 'Footwear & Loafers', cat: 'footwear', image: CATEGORY_PHOTOS['footwear'], bg: '#fff7ed', border: '#fed7aa' },
+    { name: 'Accessories', cat: 'accessories', image: CATEGORY_PHOTOS['accessories'], bg: '#f5f3ff', border: '#ddd6fe' },
+    { name: 'View All', cat: '', image: CATEGORY_PHOTOS['View All'], bg: '#f1f5f9', border: '#cbd5e1' },
   ].map((item) => {
     const found = categories.find((c) => c.category.toLowerCase() === item.cat.toLowerCase());
     return { ...item, count: found?.count };
