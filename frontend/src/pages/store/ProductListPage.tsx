@@ -91,7 +91,7 @@ export const ProductListPage: React.FC = () => {
                 type="text"
                 name="search"
                 defaultValue={query}
-                placeholder="Search products, sarees, cookware..."
+                placeholder="Search formal shirts, linen, dhotis, blazers, footwear..."
                 className="filter-search-input"
               />
               <button type="submit" className="btn-filter-search">

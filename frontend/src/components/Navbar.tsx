@@ -32,11 +32,11 @@ export const Navbar: React.FC = () => {
         <div className="store-top-bar-container">
           <span className="top-bar-item">✨ Free Shipping on Orders Over ₹999</span>
           <span className="top-bar-separator">|</span>
-          <span className="top-bar-item">🔄 7-Day Easy Returns</span>
+          <span className="top-bar-item">🔄 7-Day Easy Returns &amp; Exchanges</span>
           <span className="top-bar-separator">|</span>
-          <span className="top-bar-item">🔒 Secure Payments &amp; COD</span>
+          <span className="top-bar-item">👔 100% Premium Men's Collection</span>
           <span className="top-bar-separator">|</span>
-          <span className="top-bar-item">🌐 Multilingual AI Support (English &amp; தமிழ்)</span>
+          <span className="top-bar-item">🌐 Multilingual AI Fit &amp; Style Support (English &amp; தமிழ்)</span>
         </div>
       </div>
 
@@ -53,7 +53,7 @@ export const Navbar: React.FC = () => {
             </div>
             <div className="brand-text">
               <span className="brand-name">Regional Bazaar</span>
-              <span className="brand-sub">LIVE BETTER · REGIONAL</span>
+              <span className="brand-sub">MEN · LIVE BETTER</span>
             </div>
           </Link>
 
@@ -63,7 +63,7 @@ export const Navbar: React.FC = () => {
               <input
                 type="text"
                 className="store-search-input"
-                placeholder="Search products, spices, silk sarees, cookware..."
+                placeholder="Search formal shirts, linen shirts, silk dhotis, blazers, leather shoes..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 aria-label="Search products"
@@ -153,22 +153,28 @@ export const Navbar: React.FC = () => {
               Products
             </NavLink>
             <NavLink
-              to="/products?category=Textiles"
+              to="/products?category=mens_wear"
               className={({ isActive }) => `store-nav-link ${isActive ? 'active' : ''}`}
             >
-              Handloom &amp; Silks
+              Shirts &amp; Linen
             </NavLink>
             <NavLink
-              to="/products?category=Cookware"
+              to="/products?category=sarees_ethnic"
               className={({ isActive }) => `store-nav-link ${isActive ? 'active' : ''}`}
             >
-              Cookware
+              Dhotis &amp; Ethnic
             </NavLink>
             <NavLink
-              to="/products?category=Spices"
+              to="/products?category=mens_wear"
               className={({ isActive }) => `store-nav-link ${isActive ? 'active' : ''}`}
             >
-              Spices &amp; Masalas
+              Trousers &amp; Chinos
+            </NavLink>
+            <NavLink
+              to="/products?category=footwear"
+              className={({ isActive }) => `store-nav-link ${isActive ? 'active' : ''}`}
+            >
+              Footwear
             </NavLink>
             {customer && (
               <NavLink

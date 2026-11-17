@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 160" width="100%" height="100%">
+  <defs>
+    <linearGradient id="pGoldZari" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef3c7" />
+      <stop offset="100%" stop-color="#fde68a" />
+    </linearGradient>
+  </defs>
+  <rect width="200" height="160" fill="none" />
+  <!-- Traditional Pure Silk Dhoti & Angavastram -->
+  <path d="M25 35 L175 22 L165 135 L15 145 Z" fill="url(#pGoldZari)" rx="6" />
+  <path d="M15 135 L165 125 L167 140 L17 150 Z" fill="#d97706" />
+  <path d="M25 35 L175 22 L173 35 L23 48 Z" fill="#f59e0b" />
+  <line x1="50" y1="46" x2="42" y2="135" stroke="#d97706" stroke-dasharray="3,3" opacity="0.6" stroke-width="1.5" />
+  <line x1="85" y1="43" x2="77" y2="132" stroke="#d97706" stroke-dasharray="3,3" opacity="0.6" stroke-width="1.5" />
+  <line x1="120" y1="40" x2="112" y2="129" stroke="#d97706" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.6" stroke-width="1.5" />
+</svg>

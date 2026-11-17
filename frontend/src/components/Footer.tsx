@@ -20,7 +20,7 @@ export const Footer: React.FC = () => {
             </div>
           </div>
           <p className="footer-brand-desc">
-            Your one-stop destination for authentic handlooms, traditional stone cookware, organic heritage grains, and native spices across Tamil Nadu.
+            Your destination for refined men's style: bespoke linen shirts, pure silk wedding dhotis, tailored trousers, blazers, and handcrafted leather footwear.
           </p>
           <div className="footer-social-links">
             <span className="social-icon" title="Facebook">🌐</span>
@@ -32,22 +32,22 @@ export const Footer: React.FC = () => {
 
         {/* Shop Column */}
         <div className="footer-col">
-          <h4 className="footer-heading">Shop</h4>
+          <h4 className="footer-heading">Men's Collection</h4>
           <ul className="footer-links">
             <li>
               <Link to="/products">All Categories</Link>
             </li>
             <li>
-              <Link to="/products?category=Textiles">Handloom &amp; Silks</Link>
+              <Link to="/products?category=mens_wear">Formal &amp; Linen Shirts</Link>
             </li>
             <li>
-              <Link to="/products?category=Cookware">Traditional Cookware</Link>
+              <Link to="/products?category=sarees_ethnic">Silk Dhotis &amp; Kurtas</Link>
             </li>
             <li>
-              <Link to="/products?category=Spices">Spices &amp; Masalas</Link>
+              <Link to="/products?category=mens_wear">Trousers &amp; Chinos</Link>
             </li>
             <li>
-              <Link to="/products">Today's Deals</Link>
+              <Link to="/products?category=footwear">Leather Shoes &amp; Loafers</Link>
             </li>
           </ul>
         </div>

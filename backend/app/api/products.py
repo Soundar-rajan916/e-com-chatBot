@@ -27,6 +27,17 @@ categories_router = APIRouter(tags=["products"])
 
 # Color palettes and SVG vector art generators by category
 CATEGORY_CONFIG = {
+    "mens_wear": {
+        "color1": "#0f172a",
+        "color2": "#1e3a8a",
+        "svg_art": """<g transform="translate(165, 50)" fill="#ffffff">
+      <path d="M10 8 L60 8 L55 78 L15 78 Z" fill="#3b82f6" rx="4" />
+      <polygon points="24,8 35,32 46,8" fill="#ffffff" />
+      <polygon points="32,15 38,15 36,65 34,65" fill="#dc2626" />
+      <circle cx="35" cy="40" r="2" fill="#ffffff" />
+      <circle cx="35" cy="52" r="2" fill="#ffffff" />
+    </g>""",
+    },
     "clothing": {
         "color1": "#312e81",
         "color2": "#4f46e5",

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 200" width="100%" height="100%">
+  <defs>
+    <linearGradient id="blazerNavy" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b" />
+      <stop offset="50%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+  </defs>
+  <rect width="300" height="200" fill="#f1f5f9" rx="12" />
+  <!-- Shadow -->
+  <ellipse cx="150" cy="175" rx="85" ry="12" fill="#000000" opacity="0.15" />
+  <!-- Blazer Body -->
+  <path d="M85 30 L60 170 Q150 180 240 170 L215 30 Q150 40 85 30 Z" fill="url(#blazerNavy)" />
+  <!-- Lapels -->
+  <path d="M100 30 L135 110 L150 110 L120 30 Z" fill="#334155" />
+  <path d="M200 30 L165 110 L150 110 L180 30 Z" fill="#334155" />
+  <!-- Shirt & Tie peek -->
+  <polygon points="120,30 150,75 180,30" fill="#ffffff" />
+  <polygon points="144,45 156,45 153,95 147,95" fill="#991b1b" />
+  <!-- Pocket Square -->
+  <rect x="80" y="80" width="30" height="5" rx="1" fill="#475569" />
+  <polygon points="86,80 94,65 102,80" fill="#ffffff" />
+  <!-- Brass Buttons -->
+  <circle cx="150" cy="125" r="4.5" fill="#f59e0b" stroke="#78350f" stroke-width="1" />
+  <circle cx="150" cy="145" r="4.5" fill="#f59e0b" stroke="#78350f" stroke-width="1" />
+</svg>

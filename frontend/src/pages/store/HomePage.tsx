@@ -28,17 +28,27 @@ export const HomePage: React.FC = () => {
       try {
         const [cats, prodsRes, pol] = await Promise.all([
           getCategories().catch(() => []),
-          getProducts({ page_size: 10, in_stock_only: true }).catch(() => ({
+          getProducts({ page_size: 20, in_stock_only: true }).catch(() => ({
             items: [],
             total: 0,
             page: 1,
-            page_size: 10,
+            page_size: 20,
             total_pages: 0,
           })),
           getStorePolicy('en').catch(() => null),
         ]);
         setCategories(Array.isArray(cats) ? cats : []);
-        setFeaturedProducts(prodsRes && Array.isArray(prodsRes.items) ? prodsRes.items : []);
+        // Prioritize Men's wear items for the curated top picks
+        const allItems = prodsRes && Array.isArray(prodsRes.items) ? prodsRes.items : [];
+        const mensItems = allItems.filter(
+          (p) =>
+            p.category?.toLowerCase().includes('men') ||
+            p.category?.toLowerCase().includes('footwear') ||
+            ['shirt', 'kurta', 'dhoti', 'blazer', 'trouser', 'shoe', 'vesti', 'lungi', 'sandal'].some((kw) =>
+              (p.title || '').toLowerCase().includes(kw)
+            )
+        );
+        setFeaturedProducts(mensItems.length >= 4 ? mensItems : allItems);
         setPolicy(pol);
       } catch (err) {
         console.error('Failed to load homepage data', err);
@@ -57,16 +67,16 @@ export const HomePage: React.FC = () => {
     }
   };
 
-  // Pastel Category Circular Shortcuts (matching reference image)
+  // Dedicated Men's Wear Category Shortcuts
   const categoryShortcuts = [
-    { name: 'Handloom & Silks', cat: 'Textiles', image: CATEGORY_PHOTOS['Handloom & Silks'], bg: '#fce4ec', border: '#f8bbd0' },
-    { name: 'Cookware', cat: 'Cookware', image: CATEGORY_PHOTOS['Cookware'], bg: '#e1f5fe', border: '#b3e5fc' },
-    { name: 'Spices & Masalas', cat: 'Spices', image: CATEGORY_PHOTOS['Spices & Masalas'], bg: '#ffe0b2', border: '#ffcc80' },
-    { name: 'Heritage Grains', cat: 'Groceries', image: CATEGORY_PHOTOS['Heritage Grains'], bg: '#e8f5e9', border: '#c8e6c9' },
-    { name: 'Filter Coffee', cat: 'Beverages', image: CATEGORY_PHOTOS['Filter Coffee'], bg: '#fff3e0', border: '#ffe0b2' },
-    { name: 'Traditional Sweets', cat: 'Sweets', image: CATEGORY_PHOTOS['Traditional Sweets'], bg: '#fff8e1', border: '#ffecb3' },
-    { name: 'Artisan Crafts', cat: 'Handicrafts', image: CATEGORY_PHOTOS['Artisan Crafts'], bg: '#f3e5f5', border: '#e1bee7' },
-    { name: 'View All', cat: '', image: CATEGORY_PHOTOS['View All'], bg: '#f5f5f5', border: '#e0e0e0' },
+    { name: 'Formal Shirts', cat: 'mens_wear', image: CATEGORY_PHOTOS['Formal Shirts'], bg: '#e0f2fe', border: '#bae6fd' },
+    { name: 'Casual Linen', cat: 'mens_wear', image: CATEGORY_PHOTOS['Casual Linen'], bg: '#f0fdf4', border: '#bbf7d0' },
+    { name: 'Dhotis & Veshtis', cat: 'sarees_ethnic', image: CATEGORY_PHOTOS['Dhotis & Veshtis'], bg: '#fffbeb', border: '#fef08a' },
+    { name: 'Trousers & Chinos', cat: 'mens_wear', image: CATEGORY_PHOTOS['Trousers & Chinos'], bg: '#f8fafc', border: '#e2e8f0' },
+    { name: 'Blazers & Suits', cat: 'mens_wear', image: CATEGORY_PHOTOS['Blazers & Suits'], bg: '#f1f5f9', border: '#cbd5e1' },
+    { name: 'Polos & T-Shirts', cat: 'mens_wear', image: CATEGORY_PHOTOS['Polos & T-Shirts'], bg: '#fef2f2', border: '#fecaca' },
+    { name: 'Footwear & Loafers', cat: 'footwear', image: CATEGORY_PHOTOS['Footwear & Loafers'], bg: '#fff7ed', border: '#fed7aa' },
+    { name: 'Accessories', cat: 'mens_wear', image: CATEGORY_PHOTOS['Accessories'], bg: '#f5f3ff', border: '#ddd6fe' },
   ].map((item) => {
     const found = categories.find((c) => c.category.toLowerCase() === item.cat.toLowerCase());
     return { ...item, count: found?.count };
@@ -78,19 +88,19 @@ export const HomePage: React.FC = () => {
       <section className="viva-hero-section">
         <div className="viva-hero-card">
           <div className="viva-hero-left">
-            <span className="viva-hero-eyebrow">Authentic Regional Selection</span>
-            <h1 className="viva-hero-headline">Elevate Your Everyday</h1>
+            <span className="viva-hero-eyebrow">Refined Men's Apparel &amp; Traditional Wear</span>
+            <h1 className="viva-hero-headline">Elevate Your Everyday Style</h1>
             <h2 className="viva-hero-title-sub">Experience the Finest Products of Tamil Nadu</h2>
             <p className="viva-hero-subhead">
-              Traditional Kanchipuram silks, stone cookware, native spices, organic heritage grains, and traditional snacks. Delivered straight to your doorstep with guaranteed authenticity.
+              Tailored linen shirts, pure Kanchipuram silk wedding dhotis, bespoke festive blazers, formal trousers, and handcrafted leather footwear. Delivered with guaranteed authenticity and precision fit.
             </p>
 
             <div className="viva-hero-actions">
-              <Link to="/products" className="viva-hero-cta">
-                Shop Now &rarr;
+              <Link to="/products?category=mens_wear" className="viva-hero-cta">
+                Shop Men's Wear &rarr;
               </Link>
-              <Link to="/products?category=Textiles" className="viva-hero-secondary-btn">
-                Explore Silks
+              <Link to="/products?category=sarees_ethnic" className="viva-hero-secondary-btn">
+                Explore Dhotis
               </Link>
             </div>
 
@@ -114,7 +124,7 @@ export const HomePage: React.FC = () => {
             <div className="viva-hero-showcase">
               {/* Floating Sale Tag */}
               <div className="viva-floating-sale-pill">
-                <span className="sale-pill-label">SUMMER SALE</span>
+                <span className="sale-pill-label">SUMMER EDIT</span>
                 <span className="sale-pill-val">UP TO 40% OFF</span>
               </div>
 
@@ -122,35 +132,35 @@ export const HomePage: React.FC = () => {
               <div className="viva-hero-montage">
                 <div className="montage-item primary">
                   <img
-                    src={HERO_SHOWCASE_PHOTOS.silkSaree}
-                    alt="Kanchipuram Silk"
+                    src={HERO_SHOWCASE_PHOTOS.silkDhoti}
+                    alt="Silk Dhoti & Kurta"
                     className="montage-img"
                   />
-                  <span className="montage-caption">Kanchipuram Silk</span>
+                  <span className="montage-caption">Silk Dhoti &amp; Kurta</span>
                 </div>
                 <div className="montage-item secondary">
                   <img
-                    src={HERO_SHOWCASE_PHOTOS.cookware}
-                    alt="Soapstone Cookware"
+                    src={HERO_SHOWCASE_PHOTOS.blazer}
+                    alt="Tailored Blazer"
                     className="montage-img"
                   />
-                  <span className="montage-caption">Soapstone Cookware</span>
+                  <span className="montage-caption">Tailored Blazer</span>
                 </div>
                 <div className="montage-item tertiary">
                   <img
-                    src={HERO_SHOWCASE_PHOTOS.filterCoffee}
-                    alt="Filter Coffee"
+                    src={HERO_SHOWCASE_PHOTOS.linenShirt}
+                    alt="Pure Linen Shirt"
                     className="montage-img"
                   />
-                  <span className="montage-caption">Filter Coffee</span>
+                  <span className="montage-caption">Pure Linen Shirt</span>
                 </div>
                 <div className="montage-item quaternary">
                   <img
-                    src={HERO_SHOWCASE_PHOTOS.nativeSpices}
-                    alt="Native Spices"
+                    src={HERO_SHOWCASE_PHOTOS.leatherShoes}
+                    alt="Leather Loafers"
                     className="montage-img"
                   />
-                  <span className="montage-caption">Native Spices</span>
+                  <span className="montage-caption">Leather Loafers</span>
                 </div>
               </div>
 
@@ -295,55 +305,55 @@ export const HomePage: React.FC = () => {
       {/* 4. Three Curated Lifestyle Promo Cards */}
       <section className="viva-promo-banners-section">
         <div className="viva-promo-grid">
-          {/* Promo Card 1: Fresh Handloom Silks */}
+          {/* Promo Card 1: Wedding & Festive Silks */}
           <div className="viva-promo-card promo-mint">
             <div className="promo-text-wrap">
-              <span className="promo-eyebrow">New Arrivals</span>
-              <h3 className="promo-title">Fresh Handloom Weaves</h3>
-              <Link to="/products?category=Textiles" className="promo-link">
-                Shop Now &rarr;
+              <span className="promo-eyebrow">Wedding &amp; Festive</span>
+              <h3 className="promo-title">Pure Silk Dhotis &amp; Kurtas</h3>
+              <Link to="/products?category=sarees_ethnic" className="promo-link">
+                Shop Dhotis &rarr;
               </Link>
             </div>
             <div className="promo-visual">
               <img
-                src={PROMO_BANNER_PHOTOS.handloom}
-                alt="Fresh Handloom Weaves"
+                src={PROMO_BANNER_PHOTOS.weddingSilks}
+                alt="Pure Silk Dhotis &amp; Kurtas"
                 className="promo-img"
               />
             </div>
           </div>
 
-          {/* Promo Card 2: Traditional Cookware */}
+          {/* Promo Card 2: Summer Linen Collection */}
           <div className="viva-promo-card promo-sand">
             <div className="promo-text-wrap">
-              <span className="promo-eyebrow">Kitchen Heritage</span>
-              <h3 className="promo-title">Pure Soapstone Cookware</h3>
-              <Link to="/products?category=Cookware" className="promo-link">
-                Shop Now &rarr;
+              <span className="promo-eyebrow">Summer Essentials</span>
+              <h3 className="promo-title">100% Breathable Linen Shirts</h3>
+              <Link to="/products?category=mens_wear" className="promo-link">
+                Shop Linen &rarr;
               </Link>
             </div>
             <div className="promo-visual">
               <img
-                src={PROMO_BANNER_PHOTOS.cookware}
-                alt="Pure Soapstone Cookware"
+                src={PROMO_BANNER_PHOTOS.summerLinen}
+                alt="100% Breathable Linen Shirts"
                 className="promo-img"
               />
             </div>
           </div>
 
-          {/* Promo Card 3: Native Spices */}
+          {/* Promo Card 3: Handcrafted Leather Footwear */}
           <div className="viva-promo-card promo-sky">
             <div className="promo-text-wrap">
-              <span className="promo-eyebrow">Flavors &amp; Aromas</span>
-              <h3 className="promo-title">Native Spices &amp; Blends</h3>
-              <Link to="/products?category=Spices" className="promo-link">
-                Shop Now &rarr;
+              <span className="promo-eyebrow">Artisanal Craft</span>
+              <h3 className="promo-title">Handcrafted Leather Footwear</h3>
+              <Link to="/products?category=footwear" className="promo-link">
+                Shop Footwear &rarr;
               </Link>
             </div>
             <div className="promo-visual">
               <img
-                src={PROMO_BANNER_PHOTOS.spices}
-                alt="Native Spices"
+                src={PROMO_BANNER_PHOTOS.leatherShoes}
+                alt="Handcrafted Leather Footwear"
                 className="promo-img"
               />
             </div>
@@ -366,23 +376,41 @@ export const HomePage: React.FC = () => {
           <div className="viva-testimonial-card">
             <div className="testimonial-user-row">
               <img
-                src={TESTIMONIAL_AVATARS.sarah}
-                alt="Sarah J."
+                src={TESTIMONIAL_AVATARS.karthik}
+                alt="Karthik R."
                 className="testimonial-avatar-img"
               />
               <div>
-                <strong className="testimonial-name">Sarah J.</strong>
+                <strong className="testimonial-name">Karthik R.</strong>
                 <span className="verified-badge">✓ Verified Buyer</span>
               </div>
             </div>
             <div className="testimonial-stars">★★★★★</div>
             <p className="testimonial-quote">
-              "Amazing quality and fast delivery! Regional Bazaar has become my go-to store for
-              authentic Kanchipuram silks. The texture and zari work are exquisite."
+              "The pure silk dhoti set for my wedding was breathtaking. Exquisite zari border, perfect traditional drape, and fast delivery!"
             </p>
           </div>
 
           {/* Review 2 */}
+          <div className="viva-testimonial-card">
+            <div className="testimonial-user-row">
+              <img
+                src={TESTIMONIAL_AVATARS.arvind}
+                alt="Arvind S."
+                className="testimonial-avatar-img"
+              />
+              <div>
+                <strong className="testimonial-name">Arvind S.</strong>
+                <span className="verified-badge">✓ Verified Buyer</span>
+              </div>
+            </div>
+            <div className="testimonial-stars">★★★★★</div>
+            <p className="testimonial-quote">
+              "Crisp collar structure, wrinkle-resistant cotton, and breathable linen. Easily the best formal and casual shirts I've ordered online."
+            </p>
+          </div>
+
+          {/* Review 3 */}
           <div className="viva-testimonial-card">
             <div className="testimonial-user-row">
               <img
@@ -397,28 +425,7 @@ export const HomePage: React.FC = () => {
             </div>
             <div className="testimonial-stars">★★★★★</div>
             <p className="testimonial-quote">
-              "Great prices, excellent customer service, and super easy returns. The soapstone
-              kalchatti arrived beautifully seasoned and packaged!"
-            </p>
-          </div>
-
-          {/* Review 3 */}
-          <div className="viva-testimonial-card">
-            <div className="testimonial-user-row">
-              <img
-                src={TESTIMONIAL_AVATARS.priya}
-                alt="Priya K."
-                className="testimonial-avatar-img"
-              />
-              <div>
-                <strong className="testimonial-name">Priya K.</strong>
-                <span className="verified-badge">✓ Verified Buyer</span>
-              </div>
-            </div>
-            <div className="testimonial-stars">★★★★★</div>
-            <p className="testimonial-quote">
-              "I love the variety they offer. I can find everything in one place, and asking questions
-              in Tamil via the AI assistant made my order tracking effortless."
+              "Superb tailoring on the blazers and chinos. Sizing was spot-on, and the AI assistant recommended the exact right sleeve and collar size!"
             </p>
           </div>
         </div>
