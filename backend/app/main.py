@@ -20,9 +20,11 @@ from app.api.admin_escalations import (
     router as admin_escalations_router,
 )
 from app.api.admin_operations import router as admin_operations_router
+from app.api.admin_whatsapp import router as admin_whatsapp_router
 from app.api.cart import router as cart_router
 from app.api.chat import router as chat_router
 from app.api.customer_auth import router as customer_auth_router
+from app.api.customer_whatsapp import router as customer_whatsapp_router
 from app.api.customers import router as customers_router
 from app.api.debug import router as debug_router
 from app.api.health import router as health_router
@@ -30,8 +32,10 @@ from app.api.orders import router as orders_router
 from app.api.products import categories_router
 from app.api.products import router as products_router
 from app.api.store_config import router as store_config_router
+from app.api.whatsapp_openwa import router as whatsapp_openwa_router
 from app.config import get_settings
-from app.db import engine
+from app.db import async_session_factory, engine
+from app.services.whatsapp import OpenWaProvider, run_whatsapp_worker_loop
 
 # Configure structured logging
 logging.basicConfig(
@@ -57,8 +61,34 @@ async def lifespan(app: FastAPI):
             logger.warning("Could not pre-warm embedding model in background: %s", e)
 
     asyncio.create_task(_bg_warm())
+
+    # Start WhatsApp worker if enabled
+    settings = get_settings()
+    wa_task = None
+    wa_stop = asyncio.Event()
+
+    if settings.WHATSAPP_ENABLED:
+        logger.info("Starting WhatsApp OpenWA background workers...")
+        provider = OpenWaProvider()
+        wa_task = asyncio.create_task(
+            run_whatsapp_worker_loop(
+                session_factory=async_session_factory,
+                provider=provider,
+                stop_event=wa_stop,
+            )
+        )
+
     yield
+
     logger.info("Application shutting down...")
+    if wa_task:
+        wa_stop.set()
+        wa_task.cancel()
+        try:
+            await asyncio.wait_for(wa_task, timeout=3.0)
+        except (asyncio.CancelledError, asyncio.TimeoutError):
+            pass
+
     await engine.dispose()
 
 
@@ -160,7 +190,10 @@ def create_app() -> FastAPI:
     app.include_router(admin_operations_router)
     app.include_router(admin_cases_router)
     app.include_router(admin_escalations_router)
+    app.include_router(admin_whatsapp_router)
     app.include_router(public_session_router)
+    app.include_router(whatsapp_openwa_router)
+    app.include_router(customer_whatsapp_router)
 
     if is_dev:
         app.include_router(customers_router, tags=["Demo Customers"])

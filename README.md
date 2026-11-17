@@ -44,11 +44,13 @@ A full-stack, regional e-commerce platform and AI customer support assistant pow
 ```
 ├── backend/            # FastAPI async API, Alembic migrations, database models, tests
 │   ├── app/            # Main application, config, models, schemas, services, API routers
-│   ├── alembic/        # Async database migrations (001, 002, 003, 004)
+│   ├── alembic/        # Async database migrations (001, 002, 003, 004, 005)
 │   ├── data/           # Policy markdown files (EN & TA) and 2,000-product catalog
-│   ├── scripts/        # Seed, smoke verification, ingestion, calibration, eval scripts
+│   ├── scripts/        # Seed, smoke verification, openwa_setup, smoke_whatsapp
 │   ├── tests/          # Pytest suite with real PostgreSQL test database
+│   ├── tools/          # fake_openwa simulator service for fast local testing
 │   └── README.md       # Detailed backend architecture and instructions
+├── docs/               # Technical notes and setup guides (whatsapp-openwa-notes.md, whatsapp-openwa-setup.md)
 ├── widget/             # Standalone chat widget library (dist/widget.js)
 │   ├── src/            # Shadow DOM mount, WidgetApp, API client, types
 │   ├── vite.config.ts  # Single-file library build configuration
@@ -88,6 +90,15 @@ A full-stack, regional e-commerce platform and AI customer support assistant pow
 5. **Mock Payments & Idempotency**:
    - Real payment card details and CVVs are strictly forbidden. The store implements Cash on Delivery (COD) and a "Pay now (demo)" card flow with selectable success/failure outcomes.
    - All checkouts require an `Idempotency-Key` header, caching successful order responses to safely tolerate network retries without duplicate charges or duplicate orders.
+
+6. **WhatsApp Channel Integration (OpenWA Upstream Gateway)**:
+   - **Upstream Service**: Deployed via `ghcr.io/rmyndharis/openwa:v0.27.0` (pinned release tag, engine: `baileys`). Communicates strictly over authenticated internal HTTP REST API and signed webhooks. No custom browser automation, no Meta Cloud API dependencies.
+   - **Operational Risk Statement**: Verified and displayed prominently in README and Console: open-wa is unofficial. A dedicated non-critical number is required, reply-only rules are enforced, and the official WhatsApp Business Cloud API remains the documented upgrade path.
+   - **Security**: Webhook deliveries (`POST /whatsapp/openwa/webhook`) verify `X-OpenWA-Signature: sha256=<hex>` over raw unparsed request bytes with constant-time HMAC comparison. Deduplication is enforced on `idempotencyKey` and `deliveryId`, returning an immediate HTTP 200 acknowledgment.
+   - **Advisory Lock Serialization**: Inbound message processing acquires a transaction-level PostgreSQL lock (`pg_advisory_xact_lock(hashtext(chat_id))`), guaranteeing sequential handling per contact across concurrent worker processes.
+   - **Rate Pacing & 72h Reply Guard**: Outbound worker spaces sends by 1,500ms delay + 50% random jitter (15 msgs/min, 250 msgs/hr max), refusing outbound messages after 72 hours of customer silence.
+   - **Typed Confirmations (`YES <code>`)**: High-stakes actions (refunds, account unlinking) require typed confirmation with short-lived alphanumeric codes before execution.
+   - **Identity Linking & Account Management**: Customers pair their phone numbers through one-time 6-digit codes generated in Storefront (`/account`), sending `LINK <code>` to pair and `UNLINK` to disconnect. Staff monitor gateway health, heartbeat, and device pairing QR at `/console/whatsapp`, with dev testing at `/dev/whatsapp`.
 
 ---
 

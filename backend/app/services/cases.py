@@ -10,12 +10,14 @@ from sqlalchemy.orm import selectinload
 from app.models import (
     Agent,
     ChatMessage,
+    ChatSession,
     Escalation,
     EscalationEvent,
     EscalationNote,
     Order,
     Refund,
     Trace,
+    WhatsAppContact,
 )
 from app.services.payments import MockPaymentGateway, PaymentGatewayInterface
 
@@ -355,6 +357,22 @@ async def reply_to_customer(
         input_mode="text",
     )
     session.add(msg)
+
+    # Queue to WhatsApp outbound if WhatsApp session
+    try:
+        chat_sess = await session.get(ChatSession, esc.session_id)
+        if chat_sess:
+            wa_contact = None
+            if chat_sess.wa_contact_id:
+                wa_contact = await session.get(WhatsAppContact, chat_sess.wa_contact_id)
+            if not wa_contact and (chat_sess.channel == "whatsapp" or esc.customer_id):
+                stmt = select(WhatsAppContact).where(WhatsAppContact.customer_id == esc.customer_id).limit(1)
+                wa_contact = (await session.execute(stmt)).scalar_one_or_none()
+            if wa_contact and not wa_contact.opted_out:
+                from app.services.whatsapp.worker import queue_outbound_message
+                await queue_outbound_message(session, wa_contact.id, wa_contact.chat_id, clean_msg)
+    except Exception as exc:
+        logger.warning("Failed queuing message to WhatsApp outbound in cases.py: %s", exc)
 
     if esc.first_response_at is None:
         esc.first_response_at = now

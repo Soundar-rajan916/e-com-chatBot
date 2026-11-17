@@ -99,6 +99,18 @@ export interface EscalationsListResponse {
   total: number;
 }
 
+export interface ConversationItem {
+  session_id: string;
+  channel: string;
+  customer_name: string;
+  customer_phone: string;
+  message_count: number;
+  last_message: string;
+  created_at: string;
+  escalation_id: string | null;
+  has_traces: boolean;
+}
+
 export interface EscalationStats {
   open_count: number;
   in_progress_count: number;
@@ -354,5 +366,33 @@ export interface AdminRefundSummary {
   status: string;
   created_at: string;
   decided_by?: string | null;
+}
+
+export interface CustomerWhatsAppStatus {
+  is_linked: boolean;
+  phone_masked: string | null;
+  opted_out: boolean;
+  linked_at: string | null;
+}
+
+export interface CustomerWhatsAppLinkCodeResponse {
+  code: string;
+  expires_at: string;
+  expires_in_seconds: number;
+  wa_link: string | null;
+  instructions: string;
+}
+
+export interface AdminWhatsAppStatus {
+  enabled: boolean;
+  session_id: string;
+  status: string;
+  is_paused: boolean;
+  phone: string | null;
+  push_name: string | null;
+  qr_code: string | null;
+  risk_statement: string;
+  dashboard_url: string;
+  last_heartbeat: string | null;
 }
 

@@ -70,6 +70,12 @@ class Customer(Base):
     refunds: Mapped[list["Refund"]] = relationship(
         "Refund", back_populates="customer", cascade="all, delete-orphan"
     )
+    whatsapp_contacts: Mapped[list["WhatsAppContact"]] = relationship(
+        "WhatsAppContact", back_populates="customer"
+    )
+    whatsapp_link_codes: Mapped[list["WhatsAppLinkCode"]] = relationship(
+        "WhatsAppLinkCode", back_populates="customer", cascade="all, delete-orphan"
+    )
 
 
 class CustomerSession(Base):
@@ -277,11 +283,15 @@ class ChatSession(Base):
     )
     anon_token_hash: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
     channel: Mapped[str] = mapped_column(String(50), default="web", nullable=False)
+    wa_contact_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("whatsapp_contacts.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
     customer: Mapped["Customer | None"] = relationship("Customer", back_populates="chat_sessions")
+    wa_contact: Mapped["WhatsAppContact | None"] = relationship("WhatsAppContact", back_populates="chat_sessions")
     messages: Mapped[list["ChatMessage"]] = relationship(
         "ChatMessage",
         back_populates="session",
@@ -306,6 +316,8 @@ class ChatMessage(Base):
         UUID(as_uuid=True), ForeignKey("agents.id", ondelete="SET NULL"), nullable=True, index=True
     )
     input_mode: Mapped[str] = mapped_column(String(20), default="text", nullable=False)  # 'text' | 'voice'
+    channel: Mapped[str] = mapped_column(String(32), default="web", nullable=False)
+    openwa_message_id: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -538,3 +550,129 @@ class PolicyChunk(Base):
     )
 
     __table_args__ = (UniqueConstraint("source_file", "chunk_index", name="uq_policy_chunk_source_index"),)
+
+
+# ==========================================
+# Phase 5 Models: WhatsApp Integration (OpenWA)
+# ==========================================
+
+
+class WhatsAppContact(Base):
+    __tablename__ = "whatsapp_contacts"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    phone_number: Mapped[str] = mapped_column(String(32), unique=True, nullable=False, index=True)
+    chat_id: Mapped[str] = mapped_column(String(128), unique=True, nullable=False, index=True)
+    customer_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("customers.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    opted_out: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    last_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    customer: Mapped["Customer | None"] = relationship("Customer", back_populates="whatsapp_contacts")
+    chat_sessions: Mapped[list["ChatSession"]] = relationship("ChatSession", back_populates="wa_contact")
+    outbound_messages: Mapped[list["WhatsAppOutbound"]] = relationship(
+        "WhatsAppOutbound", back_populates="contact", cascade="all, delete-orphan"
+    )
+    pending_confirmations: Mapped[list["PendingConfirmation"]] = relationship(
+        "PendingConfirmation", back_populates="contact", cascade="all, delete-orphan"
+    )
+
+
+class WhatsAppLinkCode(Base):
+    __tablename__ = "whatsapp_link_codes"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    customer_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    code: Mapped[str] = mapped_column(String(6), nullable=False, index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    customer: Mapped["Customer"] = relationship("Customer", back_populates="whatsapp_link_codes")
+
+
+class WhatsAppInboundEvent(Base):
+    __tablename__ = "whatsapp_inbound_events"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    delivery_id: Mapped[str | None] = mapped_column(String(128), unique=True, nullable=True, index=True)
+    idempotency_key: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True, index=True)
+    event_type: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    session_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    sender_chat_id: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    raw_payload: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="pending", nullable=False, index=True)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class WhatsAppOutbound(Base):
+    __tablename__ = "whatsapp_outbound"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    contact_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("whatsapp_contacts.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    chat_id: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    body: Mapped[str] = mapped_column(Text, nullable=False)
+    idempotency_key: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
+    status: Mapped[str] = mapped_column(String(32), default="pending", nullable=False, index=True)
+    openwa_message_id: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    last_attempt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    contact: Mapped["WhatsAppContact"] = relationship("WhatsAppContact", back_populates="outbound_messages")
+
+
+class PendingConfirmation(Base):
+    __tablename__ = "pending_confirmations"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    contact_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("whatsapp_contacts.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    action_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    code: Mapped[str] = mapped_column(String(6), nullable=False, index=True)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="pending", nullable=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    contact: Mapped["WhatsAppContact"] = relationship("WhatsAppContact", back_populates="pending_confirmations")
+
+
+class WhatsAppGatewayState(Base):
+    __tablename__ = "whatsapp_gateway_state"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    session_id: Mapped[str] = mapped_column(String(128), unique=True, nullable=False, index=True)
+    status: Mapped[str] = mapped_column(String(64), default="unknown", nullable=False)
+    is_paused: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    phone_number: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    push_name: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    qr_data: Mapped[str | None] = mapped_column(Text, nullable=True)
+    last_heartbeat_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )

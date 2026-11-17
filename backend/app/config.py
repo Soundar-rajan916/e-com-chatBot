@@ -88,8 +88,8 @@ class Settings(BaseSettings):
     STT_MODEL: str = "whisper-large-v3-turbo"
     STT_LANGUAGE_HINT: str = "auto"
     STT_PROMPT_HINT: str = (
-        "Multilingual Indian regional e-commerce store. Customer inquiries in Tamil, English, and Tanglish. "
-        "Terms: order, refund, cancel, return, ORD, saree, kurti, delivery, UPI."
+        "Multilingual Indian regional menswear and e-commerce store. Customer inquiries in Tamil, English, and Tanglish. "
+        "Keywords: order status, ORD, refund, cancel, return, cufflinks, blazer, jacket, waistcoat, tuxedo, suit, delivery, UPI, tracking."
     )
     VOICE_MAX_SECONDS: int = 60
     VOICE_MAX_BYTES: int = 3000000
@@ -111,6 +111,24 @@ class Settings(BaseSettings):
     STORE_NAME: str = "Regional E-Commerce Store"
     ALLOW_CLIENT_CUSTOMER_ID: bool = True
     PRODUCT_SEARCH_EMBED_TIMEOUT_MS: int = 1500
+
+    # Phase 5: WhatsApp Channel via OpenWA Upstream Gateway
+    WHATSAPP_ENABLED: bool = False
+    OPENWA_BASE_URL: str = "http://openwa:2785"
+    OPENWA_SESSION_ID: str = "ecom-store"
+    OPENWA_API_KEY: str | None = None
+    OPENWA_WEBHOOK_SECRET: str | None = None
+    OPENWA_ADMIN_API_KEY: str | None = None
+    WHATSAPP_PHONE_NUMBER: str | None = None
+    WHATSAPP_REPLY_ONLY_HOURS: int = 72
+    WHATSAPP_OUTBOUND_MIN_DELAY_MS: int = 1500
+    WHATSAPP_OUTBOUND_MAX_PER_MINUTE: int = 15
+    WHATSAPP_OUTBOUND_MAX_PER_HOUR: int = 250
+    WHATSAPP_LINK_CODE_EXPIRE_MINUTES: int = 10
+    WHATSAPP_CONFIRMATION_EXPIRE_MINUTES: int = 15
+    WHATSAPP_MAX_TEXT_LENGTH: int = 3500
+    WHATSAPP_WORKER_CONCURRENCY: int = 2
+    WHATSAPP_POLL_INTERVAL_MS: int = 500
 
     @computed_field  # type: ignore[prop-decorator]
     @property

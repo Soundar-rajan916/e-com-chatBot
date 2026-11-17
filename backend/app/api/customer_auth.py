@@ -110,6 +110,23 @@ async def register(
     # Claim anonymous chat session if cookie exists
     anon_token = request.cookies.get(settings.ANON_COOKIE_NAME)
     await claim_anonymous_sessions(session, anon_token, customer.id)
+
+    # Auto-link any existing WhatsApp contacts matching this phone number
+    from app.models import WhatsAppContact
+    from app.services.whatsapp.identity import normalize_phone_number, PHONE_DIGITS_RE
+    norm_phone = normalize_phone_number(clean_phone)
+    raw_digits = PHONE_DIGITS_RE.sub("", clean_phone)
+    if raw_digits:
+        last10 = raw_digits[-10:] if len(raw_digits) >= 10 else raw_digits
+        stmt_wa = select(WhatsAppContact).where(
+            (WhatsAppContact.phone_number == norm_phone)
+            | (WhatsAppContact.phone_number == clean_phone)
+            | (WhatsAppContact.phone_number.endswith(last10))
+        )
+        res_wa = await session.execute(stmt_wa)
+        for wa_contact in res_wa.scalars():
+            wa_contact.customer_id = customer.id
+
     await session.commit()
     await session.refresh(customer)
 

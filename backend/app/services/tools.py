@@ -24,7 +24,7 @@ async def get_order_status(
     result = await session.execute(stmt)
     order = result.scalar_one_or_none()
 
-    if order is None or order.customer_id != customer_id:
+    if order is None or str(order.customer_id) != str(customer_id):
         return {
             "status": "not_found",
             "order_number": order_number,
@@ -122,7 +122,7 @@ async def check_refund_eligibility(
     result = await session.execute(stmt)
     order = result.scalar_one_or_none()
 
-    if order is None or order.customer_id != customer_id:
+    if order is None or str(order.customer_id) != str(customer_id):
         return {
             "eligible": False,
             "reason": "not_found",

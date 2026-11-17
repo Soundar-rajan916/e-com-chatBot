@@ -8,6 +8,7 @@ import {
   ChatRequestPayload,
   ChatResponsePayload,
   CustomerAccount,
+  ConversationItem,
   DemoCustomer,
   EscalationFullDetail,
   EscalationsListResponse,
@@ -215,6 +216,17 @@ export async function getEscalations(params?: {
 export async function getEscalationStats(): Promise<EscalationStats> {
   const url = `${getBaseUrl()}/admin/escalations/stats`;
   return requestWithTimeout<EscalationStats>(url, {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+    },
+    credentials: 'include',
+  });
+}
+
+export async function getRecentConversations(limit = 50): Promise<ConversationItem[]> {
+  const url = `${getBaseUrl()}/admin/escalations/conversations/all?limit=${limit}`;
+  return requestWithTimeout<ConversationItem[]>(url, {
     method: 'GET',
     headers: {
       'Accept': 'application/json',
@@ -1049,6 +1061,95 @@ export async function adminRejectRefundDirect(
     },
     credentials: 'include',
     body: JSON.stringify({ reason }),
+  });
+}
+
+// ==========================================
+// WhatsApp Integration (Customer & Admin)
+// ==========================================
+
+export async function getCustomerWhatsAppStatus(): Promise<{
+  is_linked: boolean;
+  phone_masked: string | null;
+  opted_out: boolean;
+  linked_at: string | null;
+}> {
+  const url = `${getBaseUrl()}/me/whatsapp`;
+  return requestWithTimeout(url, {
+    method: 'GET',
+    credentials: 'include',
+  });
+}
+
+export async function generateCustomerWhatsAppLinkCode(): Promise<{
+  code: string;
+  expires_at: string;
+  expires_in_seconds: number;
+  wa_link: string | null;
+  instructions: string;
+}> {
+  const url = `${getBaseUrl()}/me/whatsapp/link-code`;
+  return requestWithTimeout(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'shop-web',
+    },
+    credentials: 'include',
+  });
+}
+
+export async function unlinkCustomerWhatsApp(): Promise<{ status: string; message: string }> {
+  const url = `${getBaseUrl()}/me/whatsapp`;
+  return requestWithTimeout(url, {
+    method: 'DELETE',
+    headers: {
+      'X-Requested-With': 'shop-web',
+    },
+    credentials: 'include',
+  });
+}
+
+export async function getAdminWhatsAppStatus(): Promise<{
+  enabled: boolean;
+  session_id: string;
+  status: string;
+  is_paused: boolean;
+  phone: string | null;
+  push_name: string | null;
+  qr_code: string | null;
+  risk_statement: string;
+  dashboard_url: string;
+  last_heartbeat: string | null;
+}> {
+  const url = `${getBaseUrl()}/admin/whatsapp/status`;
+  return requestWithTimeout(url, {
+    method: 'GET',
+    credentials: 'include',
+  });
+}
+
+export async function pauseAdminWhatsApp(): Promise<{ status: string; is_paused: boolean }> {
+  const url = `${getBaseUrl()}/admin/whatsapp/pause`;
+  return requestWithTimeout(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'admin-console',
+    },
+    credentials: 'include',
+  });
+}
+
+export async function resumeAdminWhatsApp(): Promise<{ status: string; is_paused: boolean }> {
+  const url = `${getBaseUrl()}/admin/whatsapp/resume`;
+  return requestWithTimeout(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'admin-console',
+    },
+    credentials: 'include',
   });
 }
 

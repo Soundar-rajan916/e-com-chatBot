@@ -16,6 +16,7 @@ from app.db import get_session
 from app.models import (
     Agent,
     ChatMessage,
+    ChatSession,
     Customer,
     Escalation,
     EscalationEvent,
@@ -23,6 +24,7 @@ from app.models import (
     Order,
     Refund,
     Trace,
+    WhatsAppContact,
 )
 from app.services.payments import MockPaymentGateway
 
@@ -407,6 +409,77 @@ async def get_escalation_stats(
     )
 
 
+class ConversationListItem(BaseModel):
+    session_id: uuid.UUID
+    channel: str
+    customer_name: str
+    customer_phone: str
+    message_count: int
+    last_message: str
+    created_at: datetime
+    escalation_id: uuid.UUID | None = None
+    has_traces: bool = False
+
+
+@router.get("/conversations/all", response_model=list[ConversationListItem])
+async def list_recent_conversations(
+    current_agent: Annotated[Agent, Depends(get_current_agent)],
+    session: Annotated[AsyncSession, Depends(get_session)],
+    limit: int = Query(50, ge=1, le=100),
+) -> list[ConversationListItem]:
+    """Retrieve recent chat sessions (Web & WhatsApp) so support can inspect bot traces."""
+    stmt = (
+        select(ChatSession)
+        .options(
+            selectinload(ChatSession.customer),
+            selectinload(ChatSession.wa_contact),
+            selectinload(ChatSession.messages),
+            selectinload(ChatSession.escalations),
+        )
+        .order_by(desc(ChatSession.created_at))
+        .limit(limit)
+    )
+    result = await session.execute(stmt)
+    chat_sessions = result.scalars().all()
+
+    items: list[ConversationListItem] = []
+    for cs in chat_sessions:
+        cust_name = "Guest Visitor"
+        cust_phone = "—"
+        if cs.customer:
+            cust_name = cs.customer.name
+            cust_phone = mask_phone(cs.customer.phone)
+        elif cs.wa_contact:
+            cust_name = f"WhatsApp User ({cs.wa_contact.phone_number[-4:] if cs.wa_contact.phone_number else 'User'})"
+            cust_phone = mask_phone(cs.wa_contact.phone_number or "")
+
+        msgs = list(cs.messages or [])
+        msg_count = len(msgs)
+        last_msg = msgs[-1].content if msgs else "(No messages)"
+        if len(last_msg) > 90:
+            last_msg = last_msg[:87] + "..."
+
+        esc_id = cs.escalations[0].id if cs.escalations else None
+
+        trace_stmt = select(func.count(Trace.id)).where(Trace.session_id == cs.id)
+        trace_cnt = (await session.execute(trace_stmt)).scalar() or 0
+
+        items.append(
+            ConversationListItem(
+                session_id=cs.id,
+                channel=cs.channel or "web",
+                customer_name=cust_name,
+                customer_phone=cust_phone,
+                message_count=msg_count,
+                last_message=last_msg,
+                created_at=cs.created_at,
+                escalation_id=esc_id,
+                has_traces=trace_cnt > 0,
+            )
+        )
+    return items
+
+
 @router.get("/{id}", response_model=EscalationFullDetailResponse)
 async def get_escalation_detail(
     id: uuid.UUID,
@@ -430,19 +503,72 @@ async def get_escalation_detail(
     result = await session.execute(stmt)
     esc = result.scalar_one_or_none()
     if not esc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Escalation not found.")
+        # Check if id is a ChatSession id
+        sess_stmt = (
+            select(ChatSession)
+            .options(selectinload(ChatSession.customer), selectinload(ChatSession.escalations))
+            .where(ChatSession.id == id)
+        )
+        chat_sess = (await session.execute(sess_stmt)).scalar_one_or_none()
+        if chat_sess:
+            if chat_sess.escalations:
+                esc = chat_sess.escalations[0]
+            else:
+                esc = Escalation(
+                    session_id=chat_sess.id,
+                    customer_id=chat_sess.customer_id,
+                    reason=f"Customer chat inspection ({chat_sess.channel or 'web'})",
+                    reason_type="user_requested",
+                    status="open",
+                    priority="normal",
+                )
+                session.add(esc)
+                await session.flush()
+            stmt = (
+                select(Escalation)
+                .options(
+                    selectinload(Escalation.customer),
+                    selectinload(Escalation.assigned_agent),
+                    selectinload(Escalation.refund).selectinload(Refund.order),
+                    selectinload(Escalation.notes).selectinload(EscalationNote.agent),
+                    selectinload(Escalation.events),
+                )
+                .where(Escalation.id == esc.id)
+            )
+            esc = (await session.execute(stmt)).scalar_one()
+        else:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Escalation or session not found.")
 
     # Fetch recent orders for customer (last 5)
-    orders_stmt = (
-        select(Order)
-        .options(selectinload(Order.items))
-        .where(Order.customer_id == esc.customer_id)
-        .order_by(desc(Order.placed_at))
-        .limit(5)
-    )
-    orders_res = (await session.execute(orders_stmt)).scalars().all()
     order_items_list: list[CustomerOrderDetail] = []
-    for ord_obj in orders_res:
+    if esc.customer_id:
+        orders_stmt = (
+            select(Order)
+            .options(selectinload(Order.items))
+            .where(Order.customer_id == esc.customer_id)
+            .order_by(desc(Order.placed_at))
+            .limit(5)
+        )
+        orders_res = (await session.execute(orders_stmt)).scalars().all()
+        for ord_obj in orders_res:
+            items = [
+                CustomerOrderItemDetail(
+                    product_title=it.product_name,
+                    quantity=it.quantity,
+                    unit_price_inr=it.unit_price,
+                )
+                for it in (ord_obj.items or [])
+            ]
+            order_items_list.append(
+                CustomerOrderDetail(
+                    id=ord_obj.id,
+                    order_number=ord_obj.order_number,
+                    status=ord_obj.status,
+                    total_amount_inr=ord_obj.total_amount,
+                    created_at=ord_obj.placed_at,
+                    items=items,
+                )
+            )
         items = [
             CustomerOrderItemDetail(
                 product_title=it.product_name,
@@ -711,6 +837,32 @@ async def add_escalation_note(
     return {"message": "Note added successfully.", "note_id": str(note.id)}
 
 
+async def _maybe_queue_whatsapp_outbound(
+    session: AsyncSession,
+    session_id: uuid.UUID,
+    customer_id: uuid.UUID | None,
+    text_content: str,
+) -> None:
+    """If the session or customer is linked to WhatsApp, queue outbound message so customer receives it on their phone."""
+    try:
+        chat_sess = await session.get(ChatSession, session_id)
+        if not chat_sess:
+            return
+        wa_contact = None
+        if chat_sess.wa_contact_id:
+            wa_contact = await session.get(WhatsAppContact, chat_sess.wa_contact_id)
+        if not wa_contact and (chat_sess.channel == "whatsapp" or customer_id):
+            stmt = select(WhatsAppContact).where(WhatsAppContact.customer_id == customer_id).limit(1)
+            wa_contact = (await session.execute(stmt)).scalar_one_or_none()
+
+        if wa_contact and not wa_contact.opted_out:
+            from app.services.whatsapp.worker import queue_outbound_message
+            await queue_outbound_message(session, wa_contact.id, wa_contact.chat_id, text_content)
+            logger.info("Queued agent message to WhatsApp outbound for %s (%s)", wa_contact.phone_number, wa_contact.chat_id)
+    except Exception as exc:
+        logger.warning("Failed queuing message to WhatsApp outbound: %s", exc)
+
+
 @router.post("/{id}/reply", dependencies=[Depends(verify_csrf)])
 async def reply_to_customer(
     id: uuid.UUID,
@@ -734,6 +886,9 @@ async def reply_to_customer(
         input_mode="text",
     )
     session.add(msg)
+
+    # If WhatsApp session, queue to WhatsApp outbound as well
+    await _maybe_queue_whatsapp_outbound(session, esc.session_id, esc.customer_id, body.message.strip())
 
     # Track SLA first response timestamp
     if esc.first_response_at is None:
@@ -814,6 +969,9 @@ async def approve_refund(
     )
     session.add(notif_msg)
 
+    # If WhatsApp session, queue to WhatsApp outbound as well
+    await _maybe_queue_whatsapp_outbound(session, esc.session_id, esc.customer_id, notif_msg.content)
+
     event = EscalationEvent(
         escalation_id=esc.id,
         actor_type="agent",
@@ -878,6 +1036,9 @@ async def reject_refund(
         input_mode="text",
     )
     session.add(notif_msg)
+
+    # If WhatsApp session, queue to WhatsApp outbound as well
+    await _maybe_queue_whatsapp_outbound(session, esc.session_id, esc.customer_id, notif_msg.content)
 
     event = EscalationEvent(
         escalation_id=esc.id,

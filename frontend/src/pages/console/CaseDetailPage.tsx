@@ -357,6 +357,18 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({ currentAgent }) 
                 <span className="lang-tag">{(detail.customer?.preferred_language || 'en').toUpperCase()}</span>
               </div>
               <div className="profile-row">
+                <span className="profile-label">Channel:</span>
+                <span className="badge badge-channel" style={{ background: '#dcfce7', color: '#15803d', padding: '0.15rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600 }}>
+                  💬 WhatsApp / Web
+                </span>
+              </div>
+              <div className="profile-row">
+                <span className="profile-label">Reply Guard:</span>
+                <span style={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: 500 }}>
+                  Active (72h window)
+                </span>
+              </div>
+              <div className="profile-row">
                 <span className="profile-label">Reason:</span>
                 <span className="reason-highlight">{esc.reason}</span>
               </div>
@@ -471,6 +483,9 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({ currentAgent }) 
                         hour: '2-digit',
                         minute: '2-digit',
                       })}
+                      {m.role !== 'user' && (
+                        <span title="Delivered via WhatsApp" style={{ marginLeft: '4px', color: '#38bdf8' }}>✓✓</span>
+                      )}
                     </span>
                   </div>
 

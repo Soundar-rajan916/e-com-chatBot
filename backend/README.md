@@ -190,3 +190,23 @@ Validates:
 2. Escalation deduplication per chat session and refund rejection with bilingual notification.
 3. Concurrency control on case take (one wins with 200, one receives 409).
 4. Concurrency control on refund approval (prevents double payout).
+
+---
+
+## 9. Phase 5: WhatsApp Channel Integration (OpenWA)
+
+### Operational Risk Statement
+> open-wa is unofficial. WhatsApp may ban numbers that use unofficial clients, and WhatsApp Web changes can break the library without notice. Use a DEDICATED number that is not important to the owner, only REPLY to people who message first, never send bulk or unsolicited messages, and keep the official WhatsApp Business Cloud API as the documented production upgrade path.
+
+### Architectural Decisions
+1. **Pinned OpenWA Gateway Tag**: Pinned strictly to `ghcr.io/rmyndharis/openwa:v0.27.0` (commit `d99fa201b`, released on 2026-10-31, >2 weeks old). Image runs upstream on network `http://openwa:2785`, published to host only via `127.0.0.1:2785:2785` for localhost browser pairing.
+2. **Default Engine**: Uses `baileys` (WebAssembly/WebSocket stack) to avoid headless Chromium CPU/RAM bloat and memory leaks.
+3. **Webhook Security & Immediate ACK**: `POST /whatsapp/openwa/webhook` computes HMAC-SHA256 over raw unparsed request bytes matching `X-OpenWA-Signature: sha256=<hex>` with `hmac.compare_digest`. Webhooks are deduplicated via `idempotencyKey` / `deliveryId` and acknowledged with HTTP 200 in <50ms.
+4. **Advisory Lock Serialization**: Inbound worker serializes message handling per WhatsApp contact using PostgreSQL transaction-level locks: `SELECT pg_advisory_xact_lock(hashtext(chat_id))`.
+5. **Rate Pacing & 72h Reply Guard**: Outbound worker spaces sends by 1,500ms minimum delay with 50% randomized jitter, enforcing 15 msgs/min and 250 msgs/hr caps, refusing proactive messages after 72 hours of customer silence.
+6. **Typed Confirmations (`YES <code>`)**: Refunds requested over WhatsApp require typed confirmation `YES <code>` (15 min expiry) before payout or escalation creation.
+7. **Identity Linking**: One-time 6-digit codes generated in Customer Account (`/account`) allow pairing phone numbers via `LINK <code>` and unlinking via `UNLINK`.
+8. **Automated Smoke Verification**:
+```powershell
+docker exec ecom_backend python -m scripts.smoke_whatsapp
+```

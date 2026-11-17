@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Agent } from '../../api/types';
+import { AdminCasesView } from './AdminCasesView';
 import { AdminOrdersView } from './AdminOrdersView';
 import { AdminRefundsView } from './AdminRefundsView';
 
@@ -12,13 +13,14 @@ interface InboxPageProps {
 export const InboxPage: React.FC<InboxPageProps> = ({ currentAgent, onLogout }) => {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Active Main Tab: strictly 'orders' | 'refunds'
+  // Active Main Tab: 'orders' | 'refunds' | 'cases'
   const tabParam = searchParams.get('tab');
-  const initialTab: 'orders' | 'refunds' = tabParam === 'refunds' ? 'refunds' : 'orders';
-  const [activeTab, setActiveTab] = useState<'orders' | 'refunds'>(initialTab);
+  const initialTab: 'orders' | 'refunds' | 'cases' =
+    tabParam === 'refunds' ? 'refunds' : tabParam === 'cases' ? 'cases' : 'orders';
+  const [activeTab, setActiveTab] = useState<'orders' | 'refunds' | 'cases'>(initialTab);
 
   // Sync tab with URL
-  const handleTabChange = (tab: 'orders' | 'refunds') => {
+  const handleTabChange = (tab: 'orders' | 'refunds' | 'cases') => {
     setActiveTab(tab);
     setSearchParams(tab === 'orders' ? {} : { tab });
   };
@@ -28,9 +30,9 @@ export const InboxPage: React.FC<InboxPageProps> = ({ currentAgent, onLogout }) 
       {/* Top Header */}
       <div className="inbox-header">
         <div>
-          <h2>Regional Bazaar Store Management</h2>
+          <h2>Regional Bazaar Store & Support Management</h2>
           <p className="inbox-subtitle">
-            Fulfill store orders and manage customer returns.
+            Fulfill store orders, manage customer returns, and inspect AI bot traces.
           </p>
         </div>
         <div className="inbox-agent-badge">
@@ -63,6 +65,14 @@ export const InboxPage: React.FC<InboxPageProps> = ({ currentAgent, onLogout }) 
           <span className="tab-icon">💳</span>
           <span>Refunds</span>
         </button>
+        <button
+          type="button"
+          className={`admin-nav-tab ${activeTab === 'cases' ? 'active' : ''}`}
+          onClick={() => handleTabChange('cases')}
+        >
+          <span className="tab-icon">🎧</span>
+          <span>Support Cases & Traces</span>
+        </button>
       </div>
 
       {/* Tab 1: Orders Management */}
@@ -70,6 +80,9 @@ export const InboxPage: React.FC<InboxPageProps> = ({ currentAgent, onLogout }) 
 
       {/* Tab 2: Simplified Refunds */}
       {activeTab === 'refunds' && <AdminRefundsView />}
+
+      {/* Tab 3: Support Cases & Traces */}
+      {activeTab === 'cases' && <AdminCasesView currentAgent={currentAgent} />}
     </div>
   );
 };

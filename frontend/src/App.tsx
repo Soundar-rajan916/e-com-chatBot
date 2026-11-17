@@ -13,11 +13,14 @@ import { useHealth } from './hooks/useHealth';
 import { CaseDetailPage } from './pages/console/CaseDetailPage';
 import { InboxPage } from './pages/console/InboxPage';
 import { LoginPage as StaffLoginPage } from './pages/console/LoginPage';
+import { WhatsAppConnectionPage } from './pages/console/WhatsAppConnectionPage';
+import { AccountPage } from './pages/store/AccountPage';
 import { CartPage } from './pages/store/CartPage';
 import { CheckoutPage } from './pages/store/CheckoutPage';
 import { CustomerLoginPage } from './pages/store/CustomerLoginPage';
 import { CustomerRegisterPage } from './pages/store/CustomerRegisterPage';
 import { DevChatPage } from './pages/store/DevChatPage';
+import { WhatsAppSimulatorPage } from './pages/dev/WhatsAppSimulatorPage';
 import { HomePage } from './pages/store/HomePage';
 import { OrderDetailPage } from './pages/store/OrderDetailPage';
 import { OrdersPage } from './pages/store/OrdersPage';
@@ -62,9 +65,16 @@ const MainLayout: React.FC = () => {
           <nav className="app-nav" aria-label="Console Navigation">
             <NavLink
               to="/console"
+              end
               className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
             >
               Console
+            </NavLink>
+            <NavLink
+              to="/console/whatsapp"
+              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+            >
+              WhatsApp Gateway
             </NavLink>
             <NavLink to="/" className="nav-link">
               Storefront ↗
@@ -98,9 +108,11 @@ const MainLayout: React.FC = () => {
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/orders" element={<OrdersPage />} />
             <Route path="/orders/:orderNumber" element={<OrderDetailPage />} />
+            <Route path="/account" element={<AccountPage />} />
             <Route path="/login" element={<CustomerLoginPage />} />
             <Route path="/register" element={<CustomerRegisterPage />} />
             <Route path="/dev/chat" element={<DevChatPage />} />
+            <Route path="/dev/whatsapp" element={<WhatsAppSimulatorPage />} />
             <Route path="/chat" element={<Navigate to="/dev/chat" replace />} />
 
             {/* Staff Console Routes */}
@@ -132,6 +144,16 @@ const MainLayout: React.FC = () => {
               element={
                 currentAgent ? (
                   <CaseDetailPage currentAgent={currentAgent} />
+                ) : (
+                  <Navigate to="/console/login" replace />
+                )
+              }
+            />
+            <Route
+              path="/console/whatsapp"
+              element={
+                currentAgent ? (
+                  <WhatsAppConnectionPage currentAgent={currentAgent} />
                 ) : (
                   <Navigate to="/console/login" replace />
                 )

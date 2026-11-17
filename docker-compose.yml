@@ -47,6 +47,13 @@ services:
       TEST_DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/ecom_test
       REDIS_URL: redis://redis:6379/0
       CORS_ORIGINS: "http://localhost:5173,http://127.0.0.1:5173"
+      WHATSAPP_ENABLED: ${WHATSAPP_ENABLED:-true}
+      OPENWA_BASE_URL: http://openwa:2785
+      OPENWA_SESSION_ID: ${OPENWA_SESSION_ID:-08df64fa-3830-4fe0-b67a-986d1133f385}
+      OPENWA_API_KEY: ${OPENWA_API_KEY:-owa_k1_1f8b979af9d804cd6da28332e600d2db4e7311893f3594bc97a2e5c6d85538cd}
+      OPENWA_WEBHOOK_SECRET: ${OPENWA_WEBHOOK_SECRET:-openwa_dev_secure_webhook_secret_key_16chars}
+      OPENWA_ADMIN_API_KEY: ${OPENWA_ADMIN_API_KEY:-owa_k1_1f8b979af9d804cd6da28332e600d2db4e7311893f3594bc97a2e5c6d85538cd}
+      WHATSAPP_PHONE_NUMBER: ${WHATSAPP_PHONE_NUMBER:-+919876543210}
     depends_on:
       postgres:
         condition: service_healthy
@@ -54,6 +61,25 @@ services:
         condition: service_healthy
     volumes:
       - hfcache:/root/.cache/huggingface
+
+  openwa:
+    image: ghcr.io/rmyndharis/openwa:latest
+    container_name: ecom_openwa
+    restart: always
+    ports:
+      - "127.0.0.1:2785:2785"
+    environment:
+      PORT: 2785
+      DEFAULT_ENGINE: baileys
+      SEND_PACING_ENABLED: "false"
+      RESOLVE_LID_TO_PHONE: "true"
+      CSP_UPGRADE_INSECURE_REQUESTS: "false"
+      WEBHOOK_SSRF_PROTECT: "false"
+      VALIDATION_ERROR_DETAIL: "true"
+      SSRF_ALLOWED_HOSTS: "ecom_backend,localhost,127.0.0.1"
+      OPENWA_ADMIN_API_KEY: ${OPENWA_ADMIN_API_KEY:-admin_secret_key_change_me}
+    volumes:
+      - openwa_data:/app/data
 
   frontend:
     build:
@@ -70,3 +96,4 @@ volumes:
   pgdata:
   redisdata:
   hfcache:
+  openwa_data:

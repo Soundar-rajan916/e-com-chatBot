@@ -1,6 +1,8 @@
 import logging
+import re
 import time
 from decimal import Decimal
+from difflib import SequenceMatcher
 from typing import Any
 from uuid import UUID
 
@@ -288,6 +290,12 @@ async def handle_message(
     order_number = router_output.order_number
     refund_reason = router_output.refund_reason
 
+    # Regex fallback for order number in case router LLM omitted it
+    if not order_number:
+        ord_match = re.search(r"\b(ORD-[A-Za-z0-9\-]+)\b", cleaned_text, re.IGNORECASE)
+        if ord_match:
+            order_number = ord_match.group(1).upper()
+
     # Apply context pinning if provided
     pinned_product_id: str | None = None
     if context:
@@ -356,8 +364,55 @@ async def handle_message(
 
     if intent == "order_status":
         if not order_number:
-            tool_result = await list_customer_orders(session, customer_id, limit=5)
-            tool_calls.append({"tool": "list_customer_orders", "input": {"limit": 5}, "output": tool_result})
+            all_orders_res = await list_customer_orders(session, customer_id, limit=10)
+            found_orders = all_orders_res.get("orders", [])
+
+            # Check if user query mentions specific products/items they ordered
+            matched_order_num = None
+            generic_words = {
+                "what", "happened", "order", "orders", "status", "where", "track",
+                "delivery", "when", "item", "items", "package", "parcel", "list",
+                "show", "tell", "check", "with", "about", "have", "mine", "this",
+                "the", "for", "can", "you", "please", "details",
+            }
+            query_words = set(re.findall(r"\w{3,}", cleaned_text.lower()))
+            specific_query_words = query_words - generic_words
+
+            if specific_query_words and found_orders:
+                scores: list[tuple[float, str]] = []
+                for ord_info in found_orders:
+                    items_text = " ".join(ord_info.get("items", [])).lower()
+                    item_words = set(re.findall(r"\w{3,}", items_text))
+                    score = 0.0
+                    for qw in specific_query_words:
+                        for iw in item_words:
+                            if qw == iw:
+                                score += 2.0
+                            elif (len(qw) >= 4 and qw in iw) or (len(iw) >= 4 and iw in qw):
+                                score += 1.5
+                            else:
+                                ratio = SequenceMatcher(None, qw, iw).ratio()
+                                if ratio >= 0.70:
+                                    score += ratio
+                    if score > 0.6:
+                        scores.append((score, ord_info["order_number"]))
+
+                if scores:
+                    scores.sort(key=lambda x: x[0], reverse=True)
+                    matched_order_num = scores[0][1]
+
+            if matched_order_num:
+                tool_result = await get_order_status(session, customer_id, matched_order_num)
+                tool_calls.append(
+                    {
+                        "tool": "get_order_status",
+                        "input": {"order_number": matched_order_num, "matched_by_item": True},
+                        "output": tool_result,
+                    }
+                )
+            else:
+                tool_result = all_orders_res
+                tool_calls.append({"tool": "list_customer_orders", "input": {"limit": 5}, "output": tool_result})
         else:
             tool_result = await get_order_status(session, customer_id, order_number)
             tool_calls.append(

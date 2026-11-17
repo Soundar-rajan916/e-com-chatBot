@@ -1,0 +1,15 @@
+# Compose override using Fake OpenWA Simulator for fast local dev & testing
+# Usage: docker compose -f docker-compose.yml -f docker-compose.fake-whatsapp.yml up -d
+
+services:
+  openwa:
+    build:
+      context: ./backend/tools/fake_openwa
+      dockerfile: Dockerfile
+    container_name: ecom_openwa
+    restart: always
+    ports:
+      - "127.0.0.1:2785:2785"
+    environment:
+      PORT: 2785
+    volumes: []
