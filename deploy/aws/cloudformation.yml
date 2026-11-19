@@ -59,13 +59,14 @@ Resources:
       DistributionConfig:
         Comment: !Sub 'Regional Bazaar ${Environment} Product CDN'
         Enabled: true
-        HttpVersion: http2and3
-        PriceClass: PriceClass_200
+        HttpVersion: http2
+        PriceClass: PriceClass_100
         Origins:
           - Id: S3ProductOrigin
             DomainName: !GetAtt ProductStorageBucket.RegionalDomainName
-            OriginAccessControlId: !GetAtt CloudFrontOAC.Id
-            S3OriginConfig: {}
+            OriginAccessControlId: !Ref CloudFrontOAC
+            S3OriginConfig:
+              OriginAccessIdentity: ''
         DefaultCacheBehavior:
           TargetOriginId: S3ProductOrigin
           ViewerProtocolPolicy: redirect-to-https
@@ -103,7 +104,6 @@ Resources:
   AppStorageRolePolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub '${BucketNamePrefix}-AppPolicy-${Environment}'
       Description: Grants backend application permission to upload and manage product media in S3
       PolicyDocument:
         Version: '2012-10-17'
