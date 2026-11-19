@@ -549,7 +549,7 @@ async def get_escalation_detail(
             .order_by(desc(Order.placed_at))
             .limit(5)
         )
-        orders_res = (await session.execute(orders_stmt)).scalars().all()
+        orders_res = (await session.execute(orders_stmt)).scalars().unique().all()
         for ord_obj in orders_res:
             items = [
                 CustomerOrderItemDetail(
@@ -569,24 +569,6 @@ async def get_escalation_detail(
                     items=items,
                 )
             )
-        items = [
-            CustomerOrderItemDetail(
-                product_title=it.product_name,
-                quantity=it.quantity,
-                unit_price_inr=it.unit_price,
-            )
-            for it in (ord_obj.items or [])
-        ]
-        order_items_list.append(
-            CustomerOrderDetail(
-                id=ord_obj.id,
-                order_number=ord_obj.order_number,
-                status=ord_obj.status,
-                total_amount_inr=ord_obj.total_amount,
-                created_at=ord_obj.placed_at,
-                items=items,
-            )
-        )
 
     # Fetch transcript messages for session
     msg_stmt = (

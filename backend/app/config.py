@@ -130,6 +130,16 @@ class Settings(BaseSettings):
     WHATSAPP_WORKER_CONCURRENCY: int = 2
     WHATSAPP_POLL_INTERVAL_MS: int = 500
 
+    # Phase 6: AWS & Amazon S3 Product Storage
+    STORAGE_BACKEND: str = "local"  # "local" | "s3"
+    AWS_REGION: str = "ap-south-1"
+    AWS_ACCESS_KEY_ID: str | None = None
+    AWS_SECRET_ACCESS_KEY: str | None = None
+    AWS_S3_BUCKET_NAME: str = "regional-bazaar-products"
+    AWS_S3_CUSTOM_DOMAIN: str | None = None  # e.g. "d12345.cloudfront.net" or "cdn.regionalbazaar.com"
+    AWS_S3_ENDPOINT_URL: str | None = None   # for LocalStack or custom S3-compatible endpoints
+    AWS_S3_URL_EXPIRATION_SECONDS: int = 3600
+
     @computed_field  # type: ignore[prop-decorator]
     @property
     def cors_origins_list(self) -> list[str]:

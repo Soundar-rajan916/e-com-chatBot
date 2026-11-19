@@ -210,3 +210,54 @@ Validates:
 ```powershell
 docker exec ecom_backend python -m scripts.smoke_whatsapp
 ```
+
+---
+
+## 10. Phase 6: Name-Driven Product Image Pipeline (Pixabay & Self-Hosted WebP)
+
+End-to-end name-driven pipeline providing verified, relevant, mostly unique product photos with dynamic SVG placeholders as fail-safe fallback.
+
+### Architectural Decisions
+1. **Name-Driven Query Writing (`ProductImagePlan`)**:
+   Reads `name_en` (with category and description context) and extracts a canonical physical `item` noun phrase (e.g. `silver cufflinks`, `braided leather belt`) with marketing noise stripped. Generates 2-3 specific search queries ($\le$ 100 characters for Pixabay), `must_show`, `must_not_show`, and `people_ok`. Stored in table `product_image_plans` so re-runs cost nothing.
+2. **Pixabay Official API & No Hotlinking (Self-Hosting WebP)**:
+   - Configured via `IMAGE_PROVIDER=pixabay` and `PIXABAY_API_KEY`.
+   - In-memory preview URLs are used temporarily for the vision check.
+   - Pixabay forbids permanent hotlinking and systematic bulk downloads: only assigned winning photos are downloaded, resized using Pillow into optimized WebP formats (800px large, 400px thumb), and stored locally in `backend/media/products/`, served at `/media/products/` by FastAPI and nginx with long immutable cache headers.
+   - Responses are cached on disk for at least 24 hours (`data/image_cache/`).
+   - Token bucket respects the 100 requests per 60 seconds rate limit with exponential backoff on 429.
+3. **Vision Model Relevance Gate (`VisionJudge`)**:
+   Candidate images are audited using Groq's Vision API (`llama-3.2-11b-vision-preview` or model in `VISION_MODEL`) with strict Pydantic JSON schemas: `{shows_item, is_main_subject, matches_must_show, hits_must_not_show, brand_logo_or_readable_brand_text, watermark, person_dominant, quality, confidence, reason}`. Rejection rules enforce: item clearly visible, confidence $\ge 0.8$, quality $\ge 0.7$, zero visible brand logos or trademark text, zero stock watermarks, and no dominant persons unless `people_ok=True`. Marginal confidence goes to `needs_review`.
+4. **Perceptual Deduplication (`dHash` 64-bit + Hamming Distance $\le 6$)**:
+   Enforces **0 cross-item duplicate collisions** across the entire catalog and prevents near-identical duplicate photos within an item group.
+5. **Deterministic Assignment & Overrides**:
+   Scoped strictly to physical `item`. Verified candidates are ranked by score and assigned deterministically, capped at `IMAGE_MAX_REUSE=2`. When candidates run out, remaining products stay on the SVG placeholder (`missing`). Manual overrides in `data/image_overrides.csv` (`sku,provider_photo_id,force,notes` or `reject`) take precedence.
+6. **Provider Attribution (`docs/image-licenses.md`)**:
+   Complies with Pixabay terms. A visible link to Pixabay is displayed in the storefront footer and a small muted credit line ("Photo: <photographer> / Pixabay") is rendered on the Product Detail Page gated by `SHOW_IMAGE_CREDITS` (default true), localized in both English and Tamil.
+
+### Pipeline CLI Commands
+```powershell
+# 1. Image audit report (CSV and Markdown)
+python -m scripts.audit_images
+
+# 2. Run query writer & generate plan with dry-run cost estimate
+python -m scripts.build_product_images --dry-run
+
+# 3. Run pipeline category-by-category (or specific SKU)
+python -m scripts.build_product_images --only-category Accessories
+python -m scripts.build_product_images --only-category "Formal Shirts" --max-vision-calls 30
+python -m scripts.build_product_images --only-sku SKU-MW-ACC-012
+
+# 4. Generate review HTML contact sheet and summary markdown
+python -m scripts.images_review
+```
+
+### Review & Override Tooling
+- **Static Review Sheet**: Open `reports/images/review.html` in any browser to inspect assigned photos, confidence, vision reasons, and items needing review.
+- **Summary Metrics**: View `reports/images/summary.md` for coverage percentage, distinct image count, max reuse, and verification of 0 cross-item duplicates.
+- **Manual Overrides**: Add rows to `data/image_overrides.csv`:
+  ```csv
+  sku,provider_photo_id,force,notes
+  SKU-MW-ACC-024,123456,true,Verified cufflinks photo
+  SKU-MW-BAG-001,reject,false,Visible luxury brand logo
+  ```

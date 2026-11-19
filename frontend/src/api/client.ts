@@ -663,7 +663,7 @@ export async function getCategories(): Promise<CategoryItem[]> {
     if (!Array.isArray(raw)) return [];
     return raw.map((item) => {
       if (typeof item === 'string') {
-        return { category: item, icon: '📦' };
+        return { category: item, icon: '' };
       }
       if (item && typeof item === 'object') {
         const obj = item as Record<string, unknown>;
@@ -672,10 +672,10 @@ export async function getCategories(): Promise<CategoryItem[]> {
           count: typeof obj.count === 'number' ? obj.count : undefined,
           min_price: typeof obj.min_price === 'string' ? obj.min_price : undefined,
           max_price: typeof obj.max_price === 'string' ? obj.max_price : undefined,
-          icon: typeof obj.icon === 'string' ? obj.icon : '📦',
+          icon: '',
         };
       }
-      return { category: String(item), icon: '📦' };
+      return { category: String(item), icon: '' };
     });
   } catch (err) {
     console.warn('Failed to fetch categories, falling back to empty list', err);

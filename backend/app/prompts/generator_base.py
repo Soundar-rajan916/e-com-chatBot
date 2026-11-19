@@ -25,7 +25,7 @@ You MUST output ONLY a valid JSON object matching this schema:
 {{
   "headline": string or null (brief title summarizing the outcome, e.g. "Order Status: ORD-10001", "Refund Approved"),
   "reply": string (the complete, friendly customer-facing reply in the target language),
-  "suggested_actions": list of strings (2-4 relevant next action suggestions, e.g. ["Track ORD-10001", "Return Policy", "Browse Sarees"]),
+  "suggested_actions": list of strings (2-4 relevant next action suggestions, e.g. ["Track ORD-10001", "Return Policy", "Explore Dhotis"]),
   "data": object (intent-specific structured facts extracted directly from the tool result)
 }}
 """

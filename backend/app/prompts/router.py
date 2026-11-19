@@ -30,9 +30,9 @@ Guidelines for language:
 Guidelines for entities:
 - "order_number": Extract order number (e.g., "ORD-10001", "10001"). If the user refers to "it", "that order", or "the order" and an order number was mentioned earlier in history, resolve to that order number. Otherwise null.
 - "refund_reason": Extract the reason why the customer wants a refund (e.g., "damaged item", "wrong size", "defective") if mentioned. Otherwise null.
-- "search_query": For "product_question" or "policy_question", extract a clean search string capturing the core inquiry (e.g. "wireless earbuds", "silk saree", "returns window", "cod payment limit"). Otherwise null.
+- "search_query": For "product_question" or "policy_question", extract a clean search string capturing the core inquiry (e.g. "linen shirt", "silk dhoti", "formal blazer", "returns window", "cod payment limit"). Otherwise null.
 - "category": If a product question refers to a specific product category, pick EXACTLY one from:
-  ["Traditional & Ethnic Wear", "Electronics & Audio", "Kitchen & Home Appliances", "Beauty & Personal Care", "Footwear & Accessories", "Pooja & Spiritual Items", "Groceries & Regional Sweets", "Health & Wellness", "Home Decor & Furnishing", "Sports & Fitness", "Books & Stationery", "Baby & Kids", "Jewellery & Watches"].
+  ["formal_shirts", "casual_shirts", "tshirts_polos", "trousers_chinos", "blazers_suits", "dhotis_ethnic", "footwear", "accessories"].
   Otherwise null.
 - "max_price_inr": If the customer specifies a maximum price or budget (e.g., "under 2000", "below 1500", "less than ₹3,000", "2000 kulla"), extract as a numeric amount. Otherwise null.
 

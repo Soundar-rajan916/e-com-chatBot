@@ -1,0 +1,477 @@
+# Controlled Vocabulary for Product Image Pipeline
+# Each type defines:
+#   id: canonical product_type identifier
+#   display_name: human-readable name
+#   allowed_categories: list of categories where this type can appear
+#   search_queries: queries used to fetch candidate stock images from provider API
+#   synonyms: keywords/phrases in product titles mapped to this type
+#   negative_terms: terms that disqualify a candidate image
+#   allow_person: whether images with people are acceptable (e.g. models wearing shirts vs standalone cufflinks)
+
+types:
+  # --- ACCESSORIES ---
+  - id: cufflinks
+    display_name: "Cufflinks"
+    allowed_categories: ["accessories"]
+    search_queries: ["silver cufflinks", "men cufflinks jewelry", "formal cufflinks"]
+    synonyms: ["cufflink", "cufflinks", "silver cufflinks", "royal silver cufflinks", "french cufflinks"]
+    negative_terms: ["wristwatch", "wrist watch", "bracelet", "woman wrist", "backpack", "necklace"]
+    allow_person: false
+
+  - id: wristwatch
+    display_name: "Wristwatch"
+    allowed_categories: ["accessories"]
+    search_queries: ["men luxury wristwatch", "gentleman chronograph leather watch", "classic dress watch"]
+    synonyms: ["wristwatch", "watch", "chronograph", "timepiece", "leather watch"]
+    negative_terms: ["wall clock", "pocket watch", "smart watch screen"]
+    allow_person: true
+
+  - id: cardholder
+    display_name: "Cardholder"
+    allowed_categories: ["accessories"]
+    search_queries: ["leather card holder", "minimalist cardholder", "men slim card case"]
+    synonyms: ["cardholder", "card holder", "slim leather cardholder", "card case"]
+    negative_terms: ["business card template", "credit card terminal", "purse", "backpack"]
+    allow_person: false
+
+  - id: money_clip
+    display_name: "Money Clip"
+    allowed_categories: ["accessories"]
+    search_queries: ["engraved money clip", "metal money clip cash", "men money clip"]
+    synonyms: ["money clip", "engraved money clip", "cash clip"]
+    negative_terms: ["paperclip", "hair clip", "binder clip"]
+    allow_person: false
+
+  - id: leather_wallet
+    display_name: "Leather Wallet"
+    allowed_categories: ["accessories"]
+    search_queries: ["men leather bifold wallet", "classic leather billfold", "leather wallet"]
+    synonyms: ["wallet", "bifold", "billfold", "leather wallet", "bifold wallet"]
+    negative_terms: ["handbag", "purse", "woman tote", "backpack"]
+    allow_person: false
+
+  - id: leather_belt
+    display_name: "Leather Belt"
+    allowed_categories: ["accessories"]
+    search_queries: ["men leather belt brass buckle", "braided leather belt", "classic dress belt"]
+    synonyms: ["leather belt", "braided belt", "reversible belt", "belt"]
+    negative_terms: ["backpack", "seatbelt", "waist bag", "handbag", "strap", "chastity"]
+    allow_person: false
+
+  - id: tie_bar
+    display_name: "Tie Bar"
+    allowed_categories: ["accessories"]
+    search_queries: ["polished brass tie bar", "tie clip formal", "silver tie bar"]
+    synonyms: ["tie bar", "tie clip", "polished brass tie bar"]
+    negative_terms: ["hair pin", "barbell", "tie only"]
+    allow_person: false
+
+  - id: pocket_square
+    display_name: "Pocket Square"
+    allowed_categories: ["accessories"]
+    search_queries: ["silk pocket square", "linen pocket square formal", "folded pocket square suit"]
+    synonyms: ["pocket square", "linen pocket square", "silk pocket square"]
+    negative_terms: ["napkin", "handkerchief dirty", "bedsheet"]
+    allow_person: true
+
+  - id: bow_tie
+    display_name: "Bow Tie"
+    allowed_categories: ["accessories"]
+    search_queries: ["black silk bow tie", "men formal bow tie", "tuxedo bow tie"]
+    synonyms: ["bow tie", "silk bow tie", "bowtie"]
+    negative_terms: ["ribbon", "pasta", "hair bow"]
+    allow_person: true
+
+  - id: necktie
+    display_name: "Necktie"
+    allowed_categories: ["accessories"]
+    search_queries: ["men silk jacquard necktie", "formal tie business", "silk tie"]
+    synonyms: ["necktie", "jacquard necktie", "silk tie", "tie"]
+    negative_terms: ["bow tie", "rope", "cable tie"]
+    allow_person: true
+
+  # --- BLAZERS & SUITS ---
+  - id: waistcoat
+    display_name: "Waistcoat"
+    allowed_categories: ["blazers_suits"]
+    search_queries: ["tailored waistcoat vest", "men formal suit vest", "tweed waistcoat"]
+    synonyms: ["waistcoat", "tailored waistcoat", "suit vest", "formal vest"]
+    negative_terms: ["life jacket", "safety vest", "sweater vest"]
+    allow_person: true
+
+  - id: tuxedo
+    display_name: "Tuxedo"
+    allowed_categories: ["blazers_suits"]
+    search_queries: ["men black tuxedo satin lapel", "formal dinner suit tuxedo", "classic tuxedo"]
+    synonyms: ["tuxedo", "tuxedo jacket", "black tuxedo"]
+    negative_terms: ["casual blazer", "denim jacket"]
+    allow_person: true
+
+  - id: blazer
+    display_name: "Blazer"
+    allowed_categories: ["blazers_suits"]
+    search_queries: ["men wool blazer tailored", "single breasted suit jacket", "classic navy blazer"]
+    synonyms: ["blazer", "suit jacket", "single-breasted", "double-breasted", "houndstooth", "tweed blazer", "linen jacket"]
+    negative_terms: ["leather motorcycle jacket", "windbreaker", "parka", "hoodie"]
+    allow_person: true
+
+  - id: nehru_jacket
+    display_name: "Nehru Jacket / Bandhgala"
+    allowed_categories: ["blazers_suits"]
+    search_queries: ["men nehru jacket mandarin collar", "raw silk bandhgala jacket", "ethnic modi jacket"]
+    synonyms: ["nehru jacket", "nehru coat", "bandhgala", "raw silk nehru"]
+    negative_terms: ["western blazer with lapel", "hoodie"]
+    allow_person: true
+
+  # --- FOOTWEAR ---
+  - id: running_shoes
+    display_name: "Running Shoes"
+    allowed_categories: ["footwear"]
+    search_queries: ["men cushioned running shoes", "athletic sports sneakers", "road running shoes"]
+    synonyms: ["running shoes", "running", "cushioned running", "athletic shoes"]
+    negative_terms: ["leather dress shoes", "high heels", "sandals", "loafers"]
+    allow_person: false
+
+  - id: sneakers
+    display_name: "Sneakers"
+    allowed_categories: ["footwear"]
+    search_queries: ["men white leather minimalist sneakers", "casual lifestyle sneakers", "classic low top sneakers"]
+    synonyms: ["sneaker", "sneakers", "white leather sneaker", "low top sneaker"]
+    negative_terms: ["formal oxford shoes", "loafers", "boots"]
+    allow_person: false
+
+  - id: loafers
+    display_name: "Loafers"
+    allowed_categories: ["footwear"]
+    search_queries: ["men leather penny loafers", "suede tassel loafers", "casual slip on loafers"]
+    synonyms: ["penny loafer", "tassel loafer", "loafer", "loafers", "driving moccasins", "moccasin"]
+    negative_terms: ["sneakers", "athletic shoes", "sandals", "oxford laced"]
+    allow_person: false
+
+  - id: monk_strap_shoes
+    display_name: "Monk Strap Shoes"
+    allowed_categories: ["footwear"]
+    search_queries: ["men double monk strap leather dress shoes", "brown monk strap shoes"]
+    synonyms: ["monk strap", "double monk strap", "single monk strap"]
+    negative_terms: ["sneakers", "laced oxford", "sandals"]
+    allow_person: false
+
+  - id: brogues
+    display_name: "Brogues"
+    allowed_categories: ["footwear"]
+    search_queries: ["men brown leather brogue shoes wingtip", "full brogues dress shoes"]
+    synonyms: ["brogue", "brogues", "wingtip brogue", "brogue leather shoes"]
+    negative_terms: ["sneakers", "plain toe", "sandals"]
+    allow_person: false
+
+  - id: derby_shoes
+    display_name: "Derby Shoes"
+    allowed_categories: ["footwear"]
+    search_queries: ["men leather derby dress shoes open lacing", "classic derby shoes"]
+    synonyms: ["derby", "derby dress shoes", "derby shoes"]
+    negative_terms: ["sneakers", "closed oxford lacing", "slip on"]
+    allow_person: false
+
+  - id: oxford_shoes
+    display_name: "Oxford Shoes"
+    allowed_categories: ["footwear"]
+    search_queries: ["men black leather oxford dress shoes closed lacing", "cap toe oxford"]
+    synonyms: ["oxford", "oxford leather shoes", "cap toe oxford"]
+    negative_terms: ["sneakers", "casual sandals", "hiking boots", "nike logo"]
+    allow_person: false
+
+  - id: kolhapuri_chappals
+    display_name: "Kolhapuri Chappals"
+    allowed_categories: ["footwear"]
+    search_queries: ["handcrafted leather kolhapuri chappal", "traditional indian ethnic sandals"]
+    synonyms: ["kolhapuri", "kolhapuri chappal", "peshawari chappal"]
+    negative_terms: ["sneakers", "high heels", "rubber flip flops"]
+    allow_person: false
+
+  - id: leather_sandals
+    display_name: "Leather Sandals"
+    allowed_categories: ["footwear"]
+    search_queries: ["men leather cross strap sandals", "mens casual brown leather slide sandals"]
+    synonyms: ["leather sandals", "cross sandals", "sandals", "chappal", "sandal"]
+    negative_terms: ["running shoes", "sneakers", "plastic flip flop"]
+    allow_person: false
+
+  # --- DHOTIS & ETHNIC ---
+  - id: silk_dhoti
+    display_name: "Silk Dhoti / Veshti"
+    allowed_categories: ["dhotis_ethnic"]
+    search_queries: ["men traditional south indian silk veshti dhoti gold zari", "men cream silk dhoti wedding"]
+    synonyms: ["kanchipuram", "mayilkann", "zari", "gold zari", "kasavu", "temple border", "double layer", "panchakacham", "coimbatore", "vesti", "veshti", "dhoti", "angavastram"]
+    negative_terms: ["woman saree", "bridal dress", "western suit", "jeans"]
+    allow_person: true
+
+  - id: lungi
+    display_name: "Lungi"
+    allowed_categories: ["dhotis_ethnic"]
+    search_queries: ["south indian checked cotton lungi", "traditional men lungi"]
+    synonyms: ["lungi", "checked lungi", "cotton lungi"]
+    negative_terms: ["woman dress", "skirt", "saree"]
+    allow_person: true
+
+  - id: kurta
+    display_name: "Kurta"
+    allowed_categories: ["dhotis_ethnic", "casual_shirts"]
+    search_queries: ["men short cotton kurta ethnic", "men handloom kurta"]
+    synonyms: ["short kurta", "kurta", "cotton kurta"]
+    negative_terms: ["woman kurti", "dress", "saree"]
+    allow_person: true
+
+  # --- SHIRTS ---
+  - id: casual_linen_shirt
+    display_name: "Linen Casual Shirt"
+    allowed_categories: ["casual_shirts"]
+    search_queries: ["men relaxed linen summer shirt camp collar", "short sleeve linen shirt"]
+    synonyms: ["linen shirt", "summer linen", "cuban collar", "camp collar", "short sleeve linen"]
+    negative_terms: ["polyester t-shirt", "formal tie", "suit"]
+    allow_person: true
+
+  - id: casual_cotton_shirt
+    display_name: "Casual Cotton Shirt"
+    allowed_categories: ["casual_shirts"]
+    search_queries: ["men casual button down cotton shirt", "flannel plaid shirt men", "mandarin collar casual shirt"]
+    synonyms: ["casual shirt", "mandarin", "flannel", "plaid", "slub cotton", "raw cotton", "cotton shirt"]
+    negative_terms: ["suit jacket", "hoodie"]
+    allow_person: true
+
+  - id: chambray_shirt
+    display_name: "Chambray Shirt"
+    allowed_categories: ["casual_shirts"]
+    search_queries: ["men indigo chambray denim button up shirt", "light blue chambray shirt"]
+    synonyms: ["chambray", "indigo chambray", "washed denim shirt", "denim shirt"]
+    negative_terms: ["white formal dress shirt", "silk tie"]
+    allow_person: true
+
+  - id: utility_shirt
+    display_name: "Utility / Safari Shirt"
+    allowed_categories: ["casual_shirts"]
+    search_queries: ["men safari utility overshirt double pocket", "military style utility shirt"]
+    synonyms: ["safari", "utility", "safari shirt", "overshirt"]
+    negative_terms: ["formal dress shirt", "pajamas"]
+    allow_person: true
+
+  - id: formal_dress_shirt
+    display_name: "Formal Dress Shirt"
+    allowed_categories: ["formal_shirts"]
+    search_queries: ["men crisp white cotton dress shirt", "spread collar formal shirt business", "twill dress shirt"]
+    synonyms: ["dress shirt", "formal shirt", "twill", "poplin", "oxford shirt", "giza cotton", "pinpoint", "spread collar", "cutaway", "business shirt", "collar shirt", "dobby shirt", "white shirt", "executive shirt", "herringbone", "weave shirt", "royal oxford", "shirt"]
+    negative_terms: ["casual t-shirt", "tank top", "hoodie", "denim shirt"]
+    allow_person: true
+
+  - id: french_cuff_shirt
+    display_name: "French Cuff Shirt"
+    allowed_categories: ["formal_shirts"]
+    search_queries: ["men formal french cuff white dress shirt", "double cuff luxury shirt"]
+    synonyms: ["french cuff", "double cuff"]
+    negative_terms: ["casual shirt", "short sleeve"]
+    allow_person: true
+
+  - id: pinstripe_shirt
+    display_name: "Pinstripe Shirt"
+    allowed_categories: ["formal_shirts", "casual_shirts"]
+    search_queries: ["men pinstripe formal dress shirt", "blue striped business shirt"]
+    synonyms: ["pinstripe", "pinstripe shirt", "pinstripe business shirt", "stripe dress shirt", "fine stripe", "striped shirt", "striped business shirt"]
+    negative_terms: ["t-shirt", "rugby shirt"]
+    allow_person: true
+
+  # --- TROUSERS & CHINOS ---
+  - id: denim_jeans
+    display_name: "Denim Jeans"
+    allowed_categories: ["trousers_chinos"]
+    search_queries: ["men classic straight leg selvedge blue jeans", "raw denim jeans"]
+    synonyms: ["jeans", "denim", "selvedge", "selvedge denim"]
+    negative_terms: ["formal trousers", "shorts", "sweatpants"]
+    allow_person: true
+
+  - id: cargo_pants
+    display_name: "Cargo Pants"
+    allowed_categories: ["trousers_chinos"]
+    search_queries: ["men tapered cargo pants utility pockets", "olive green cargo trousers"]
+    synonyms: ["cargo", "cargo pants"]
+    negative_terms: ["formal suit trousers", "track pants"]
+    allow_person: true
+
+  - id: formal_trousers
+    display_name: "Formal Trousers"
+    allowed_categories: ["trousers_chinos"]
+    search_queries: ["men pleated wool dress trousers charcoal", "tailored formal pants"]
+    synonyms: ["pleated", "dress trousers", "wool trousers", "dress pants", "formal trousers"]
+    negative_terms: ["jeans", "shorts", "sweatpants", "joggers"]
+    allow_person: true
+
+  - id: chinos
+    display_name: "Chinos"
+    allowed_categories: ["trousers_chinos"]
+    search_queries: ["men slim fit khaki chinos cotton pants", "tailored chinos navy"]
+    synonyms: ["chinos", "khaki", "gurkha", "drawstring trousers", "trousers", "pants"]
+    negative_terms: ["blue denim jeans", "cargo baggy"]
+    allow_person: true
+
+  # --- POLOS & TEES ---
+  - id: polo_shirt
+    display_name: "Polo Shirt"
+    allowed_categories: ["tshirts_polos"]
+    search_queries: ["men pique cotton polo shirt collar", "mercerized knit polo shirt"]
+    synonyms: ["polo", "pique", "mercerized", "striped polo", "zip neck polo"]
+    negative_terms: ["round neck t-shirt", "formal dress shirt"]
+    allow_person: true
+
+  - id: henley_shirt
+    display_name: "Henley Shirt"
+    allowed_categories: ["tshirts_polos"]
+    search_queries: ["men waffle knit henley shirt long sleeve button", "cotton henley shirt"]
+    synonyms: ["henley", "waffle", "waffle henley"]
+    negative_terms: ["polo collar", "hoodie"]
+    allow_person: true
+
+  - id: t_shirt
+    display_name: "T-Shirt"
+    allowed_categories: ["tshirts_polos"]
+    search_queries: ["men plain crewneck cotton t-shirt", "heavyweight supima tee"]
+    synonyms: ["tee", "t-shirt", "tshirt", "crewneck", "supima"]
+    negative_terms: ["collared polo shirt", "dress shirt"]
+    allow_person: true
+
+  # --- ELECTRONICS & ACCESSORIES ---
+  - id: headphones
+    display_name: "Headphones"
+    allowed_categories: ["electronics_accessories"]
+    search_queries: ["wireless over-ear studio headphones", "premium audio headphones"]
+    synonyms: ["headphones", "headphone", "over-ear headphones"]
+    negative_terms: ["earbuds", "mobile phone"]
+    allow_person: false
+
+  - id: power_bank
+    display_name: "Power Bank"
+    allowed_categories: ["electronics_accessories"]
+    search_queries: ["portable power bank battery charger usb-c", "slim external battery pack"]
+    synonyms: ["power bank", "portable charger", "powerbank"]
+    negative_terms: ["smartphone", "laptop"]
+    allow_person: false
+
+  - id: mechanical_keyboard
+    display_name: "Mechanical Keyboard"
+    allowed_categories: ["electronics_accessories"]
+    search_queries: ["custom mechanical keyboard desk setup", "mechanical gaming keyboard"]
+    synonyms: ["mechanical keyboard", "keyboard", "keyboards"]
+    negative_terms: ["laptop screen", "mouse pad only"]
+    allow_person: false
+
+  - id: bluetooth_speaker
+    display_name: "Bluetooth Speaker"
+    allowed_categories: ["electronics_accessories"]
+    search_queries: ["portable bluetooth wireless speaker", "modern desk audio speaker"]
+    synonyms: ["bluetooth speaker", "speaker", "speakers"]
+    negative_terms: ["headphones", "smart tv"]
+    allow_person: false
+
+  # --- HOME & KITCHEN ---
+  - id: air_fryer
+    display_name: "Air Fryer"
+    allowed_categories: ["kitchenware"]
+    search_queries: ["digital air fryer kitchen countertop", "modern air fryer appliance"]
+    synonyms: ["air fryer", "airfryer"]
+    negative_terms: ["microwave", "toaster"]
+    allow_person: false
+
+  - id: pressure_cooker
+    display_name: "Pressure Cooker"
+    allowed_categories: ["kitchenware"]
+    search_queries: ["stainless steel pressure cooker kitchen", "traditional pressure cooker"]
+    synonyms: ["pressure cooker", "cooker"]
+    negative_terms: ["frying pan", "pot only"]
+    allow_person: false
+
+  - id: spice_jar
+    display_name: "Spice Jars"
+    allowed_categories: ["kitchenware"]
+    search_queries: ["glass spice jars wooden lid kitchen rack", "spice container set"]
+    synonyms: ["spice jar", "spice jars", "seasoning container"]
+    negative_terms: ["wine bottle", "mason jar with cocktail"]
+    allow_person: false
+
+  - id: stainless_steel_vessel
+    display_name: "Stainless Steel Vessels"
+    allowed_categories: ["kitchenware"]
+    search_queries: ["indian stainless steel cookware vessel pot", "stainless steel kitchen utensils"]
+    synonyms: ["stainless steel vessels", "steel vessel", "steel container", "vessel"]
+    negative_terms: ["plastic bucket", "frying pan"]
+    allow_person: false
+
+  - id: cast_iron_kadai
+    display_name: "Cast Iron Kadai"
+    allowed_categories: ["kitchenware"]
+    search_queries: ["seasoned black cast iron kadai wok", "cast iron cooking wok"]
+    synonyms: ["cast iron kadai", "kadai", "cast iron skillet"]
+    negative_terms: ["nonstick pan", "stainless steel"]
+    allow_person: false
+
+  # --- MOBILE ACCESSORIES ---
+  - id: screen_protector
+    display_name: "Screen Protector"
+    allowed_categories: ["mobile_accessories"]
+    search_queries: ["tempered glass screen protector phone packaging", "screen guard"]
+    synonyms: ["screen protector", "screen guard", "tempered glass"]
+    negative_terms: ["broken phone", "laptop"]
+    allow_person: false
+
+  - id: fast_charger
+    display_name: "Fast Charger"
+    allowed_categories: ["mobile_accessories"]
+    search_queries: ["usb-c fast wall charger adapter plug", "compact gan phone charger"]
+    synonyms: ["fast charger", "charger", "wall adapter"]
+    negative_terms: ["car charger", "power strip"]
+    allow_person: false
+
+  - id: car_mount
+    display_name: "Car Mount"
+    allowed_categories: ["mobile_accessories"]
+    search_queries: ["magnetic car phone mount dashboard vent", "phone car holder"]
+    synonyms: ["car mount", "car phone holder", "mobile mount"]
+    negative_terms: ["steering wheel cover", "car seat"]
+    allow_person: false
+
+  - id: phone_case
+    display_name: "Phone Case"
+    allowed_categories: ["mobile_accessories"]
+    search_queries: ["matte silicone protective phone case cover", "leather phone case"]
+    synonyms: ["phone case", "phone cover", "protective case"]
+    negative_terms: ["broken phone", "tablet case"]
+    allow_person: false
+
+  # --- SAREES & ETHNIC ---
+  - id: kanchipuram_saree
+    display_name: "Kanchipuram Silk Saree"
+    allowed_categories: ["sarees_ethnic"]
+    search_queries: ["traditional kanchipuram silk saree gold zari border", "indian bridal silk saree"]
+    synonyms: ["kanchipuram silk", "silk saree", "wedding saree"]
+    negative_terms: ["western dress", "pants", "suit"]
+    allow_person: true
+
+  - id: cotton_saree
+    display_name: "Cotton Saree"
+    allowed_categories: ["sarees_ethnic"]
+    search_queries: ["handloom cotton saree traditional indian", "printed cotton saree"]
+    synonyms: ["cotton saree", "handloom saree", "mulmul saree"]
+    negative_terms: ["silk heavy", "western clothing"]
+    allow_person: true
+
+  - id: kurti
+    display_name: "Women Kurti"
+    allowed_categories: ["sarees_ethnic", "womens_wear"]
+    search_queries: ["women ethnic cotton printed kurti tunic", "indian casual kurti"]
+    synonyms: ["kurti", "kurtis", "ethnic tunic"]
+    negative_terms: ["men kurta", "t-shirt"]
+    allow_person: true
+
+  - id: salwar_suit
+    display_name: "Salwar Suit"
+    allowed_categories: ["sarees_ethnic", "womens_wear"]
+    search_queries: ["women designer salwar suit with dupatta", "ethnic salwar kameez"]
+    synonyms: ["salwar suit", "salwar", "churidar", "anarkali"]
+    negative_terms: ["men suit", "jeans"]
+    allow_person: true

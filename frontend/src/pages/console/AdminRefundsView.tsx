@@ -5,6 +5,7 @@ import {
   getAdminRefunds,
 } from '../../api/client';
 import { AdminRefundSummary } from '../../api/types';
+import { RefreshIcon, CreditCardIcon, CheckIcon, CloseIcon } from '../../components/icons';
 
 export const AdminRefundsView: React.FC = () => {
   const [refunds, setRefunds] = useState<AdminRefundSummary[]>([]);
@@ -114,8 +115,9 @@ export const AdminRefundsView: React.FC = () => {
           className="btn btn-outline-sm"
           onClick={() => void fetchRefunds()}
           disabled={loading}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
         >
-          {loading ? 'Refreshing...' : '🔄 Refresh Refunds'}
+          <RefreshIcon size={13} /> {loading ? 'Refreshing...' : 'Refresh Refunds'}
         </button>
       </div>
 
@@ -160,7 +162,9 @@ export const AdminRefundsView: React.FC = () => {
         </div>
       ) : refunds.length === 0 ? (
         <div className="admin-empty-state">
-          <div className="empty-icon">💳</div>
+          <div className="empty-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px', color: '#848D9A' }}>
+            <CreditCardIcon size={44} />
+          </div>
           <h4>No refunds found</h4>
           <p>
             {statusFilter === 'pending_approval'
@@ -217,10 +221,14 @@ export const AdminRefundsView: React.FC = () => {
                       <span className="admin-badge badge-pending">Needs Approval</span>
                     )}
                     {isProcessed && (
-                      <span className="admin-badge badge-delivered">Paid / Approved ✓</span>
+                      <span className="admin-badge badge-delivered" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <CheckIcon size={12} /> Paid / Approved
+                      </span>
                     )}
                     {isRejected && (
-                      <span className="admin-badge badge-cancelled">Rejected ✕</span>
+                      <span className="admin-badge badge-cancelled" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <CloseIcon size={12} /> Rejected
+                      </span>
                     )}
                   </div>
                 </div>
@@ -234,8 +242,9 @@ export const AdminRefundsView: React.FC = () => {
                         className="btn btn-primary-sm admin-approve-btn"
                         onClick={() => void handleApprove(refund)}
                         disabled={isBusy}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                       >
-                        {isBusy ? 'Processing...' : '✓ Approve Refund'}
+                        <CheckIcon size={13} /> {isBusy ? 'Processing...' : 'Approve Refund'}
                       </button>
                       <button
                         type="button"
@@ -245,20 +254,21 @@ export const AdminRefundsView: React.FC = () => {
                           setRejectReason('Item return conditions not met.');
                         }}
                         disabled={isBusy}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                       >
-                        ✕ Reject
+                        <CloseIcon size={13} /> Reject
                       </button>
                     </>
                   )}
                   {isProcessed && (
-                    <div className="refund-status-label status-processed">
-                      ✓ Approved & Payout Complete
+                    <div className="refund-status-label status-processed" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <CheckIcon size={13} /> Approved &amp; Payout Complete
                       {refund.decided_by && <small> ({refund.decided_by})</small>}
                     </div>
                   )}
                   {isRejected && (
-                    <div className="refund-status-label status-rejected">
-                      ✕ Rejected
+                    <div className="refund-status-label status-rejected" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <CloseIcon size={13} /> Rejected
                       {refund.decided_by && <small> ({refund.decided_by})</small>}
                     </div>
                   )}

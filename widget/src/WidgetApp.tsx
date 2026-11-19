@@ -1,5 +1,15 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ChatMessageItem, Locale, WidgetConfig, WidgetContext } from './types';
+import {
+  ChatIcon,
+  CloseIcon,
+  BagIcon,
+  TagIcon,
+  PackageIcon,
+  HeadphonesIcon,
+  UsersIcon,
+  ArrowRightIcon,
+} from './WidgetIcons';
 
 interface WidgetAppProps {
   config: WidgetConfig;
@@ -212,8 +222,6 @@ export const WidgetApp: React.FC<WidgetAppProps> = ({
   const [inputVal, setInputVal] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [isRecording, setIsRecording] = useState(false);
-  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const apiUrl = config.apiUrl || '';
@@ -383,65 +391,6 @@ export const WidgetApp: React.FC<WidgetAppProps> = ({
     [apiUrl, config, context, isLoading, sessionId]
   );
 
-  const startVoiceRecording = async () => {
-    if (!navigator.mediaDevices || !window.MediaRecorder) {
-      alert('Voice notes are not supported on this browser.');
-      return;
-    }
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
-      const audioChunks: Blob[] = [];
-
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) audioChunks.push(e.data);
-      };
-
-      recorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-        const formData = new FormData();
-        formData.append('audio', audioBlob, 'voice.webm');
-        try {
-          setIsLoading(true);
-          const trRes = await fetch(`${apiUrl}/voice/transcribe`, {
-            method: 'POST',
-            headers: {
-              'X-Requested-With': 'support-widget',
-            },
-            credentials: 'include',
-            body: formData,
-          });
-          if (trRes.ok) {
-            const trData = await trRes.json();
-            if (trData.transcript) {
-              await handleSendMessage(trData.transcript);
-            }
-          }
-        } catch {
-          // Voice transcribe failure
-        } finally {
-          setIsLoading(false);
-          setIsRecording(false);
-          stream.getTracks().forEach((t) => t.stop());
-        }
-      };
-
-      recorder.start();
-      setMediaRecorder(recorder);
-      setIsRecording(true);
-    } catch {
-      alert('Microphone permission denied.');
-    }
-  };
-
-  const stopVoiceRecording = () => {
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-      mediaRecorder.stop();
-      setMediaRecorder(null);
-    }
-  };
-
   // Quick reply chips
   const getQuickReplies = (): string[] => {
     if (context.type === 'product') {
@@ -468,7 +417,7 @@ export const WidgetApp: React.FC<WidgetAppProps> = ({
         onClick={onToggle}
         aria-label="Toggle Regional Support Assistant"
       >
-        {isOpen ? '✕' : '💬'}
+        {isOpen ? <CloseIcon size={20} /> : <ChatIcon size={22} />}
       </button>
 
       {/* Main chat window */}
@@ -477,7 +426,7 @@ export const WidgetApp: React.FC<WidgetAppProps> = ({
           {/* Header */}
           <div className="widget-header">
             <div className="widget-header-title">
-              <span className="widget-avatar">🛍️</span>
+              <span className="widget-avatar"><BagIcon size={18} /></span>
               <div>
                 <div className="widget-brand-name">
                   {config.storeName || 'Regional Support'}
@@ -502,7 +451,7 @@ export const WidgetApp: React.FC<WidgetAppProps> = ({
                 onClick={onClose}
                 aria-label="Close Support Widget"
               >
-                ✕
+                <CloseIcon size={16} />
               </button>
             </div>
           </div>
@@ -511,7 +460,15 @@ export const WidgetApp: React.FC<WidgetAppProps> = ({
           {context.type !== 'none' && (
             <div className="widget-context-pill">
               <span className="widget-context-text">
-                {context.type === 'product' ? '🏷️ Product:' : '📦 Order:'}{' '}
+                {context.type === 'product' ? (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <TagIcon size={12} /> Product:
+                  </span>
+                ) : (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <PackageIcon size={12} /> Order:
+                  </span>
+                )}{' '}
                 <strong>{context.title || context.id}</strong>
               </span>
               <button
@@ -519,8 +476,9 @@ export const WidgetApp: React.FC<WidgetAppProps> = ({
                 className="widget-context-clear"
                 onClick={onClearContext}
                 title="Clear Context"
+                aria-label="Clear Context"
               >
-                ✕
+                <CloseIcon size={12} />
               </button>
             </div>
           )}
@@ -543,14 +501,14 @@ export const WidgetApp: React.FC<WidgetAppProps> = ({
             {messages.map((m) => (
               <div key={m.id} className={`widget-message-item ${m.role}`}>
                 {m.role === 'agent' && (
-                  <span className="widget-agent-badge">
-                    🎧 {m.agent_name || 'Support Executive'}
+                  <span className="widget-agent-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <HeadphonesIcon size={12} /> {m.agent_name || 'Support Executive'}
                   </span>
                 )}
                 <div className="widget-bubble">{renderFormattedMessage(m.content)}</div>
                 {m.requires_human && (
-                  <div className="widget-handoff-banner">
-                    <span>🤝</span>
+                  <div className="widget-handoff-banner" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <UsersIcon size={14} />
                     <span>Handed to a support executive</span>
                   </div>
                 )}
@@ -618,25 +576,16 @@ export const WidgetApp: React.FC<WidgetAppProps> = ({
                   ? 'கேள்வி அல்லது செய்தியைத் தட்டச்சு செய்க...'
                   : 'Type your question or message...'
               }
-              disabled={isLoading || isRecording}
+              disabled={isLoading}
             />
-            {/* Mic Button */}
-            <button
-              type="button"
-              className={`widget-action-icon-btn widget-mic-btn ${isRecording ? 'recording' : ''}`}
-              onClick={isRecording ? stopVoiceRecording : startVoiceRecording}
-              title={isRecording ? 'Stop Recording' : 'Record Voice Note'}
-            >
-              🎤
-            </button>
             {/* Send Button */}
             <button
               type="submit"
               className="widget-send-btn"
-              disabled={isLoading || !inputVal.trim() || isRecording}
+              disabled={isLoading || !inputVal.trim()}
               aria-label="Send message"
             >
-              ➤
+              <ArrowRightIcon size={15} />
             </button>
           </form>
         </div>

@@ -262,6 +262,8 @@ export interface ProductItem {
   is_active: boolean;
   rating?: number | null;
   image_url?: string;
+  image_credit?: string | null;
+  image_status?: string;
 }
 
 export interface ProductListResponse {

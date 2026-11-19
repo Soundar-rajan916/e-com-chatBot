@@ -1,0 +1,141 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Regional Bazaar — Amazon S3 Product Storage & CloudFront CDN Infrastructure'
+
+Parameters:
+  BucketNamePrefix:
+    Type: String
+    Default: regional-bazaar-products
+    Description: Prefix for the Amazon S3 product assets bucket.
+
+  Environment:
+    Type: String
+    Default: prod
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Environment name.
+
+Resources:
+  # 1. Amazon S3 Bucket for Product Media & Catalog Data
+  ProductStorageBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${BucketNamePrefix}-${Environment}-${AWS::AccountId}'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - '*'
+            AllowedMethods:
+              - GET
+              - HEAD
+            AllowedOrigins:
+              - '*'
+            MaxAge: 3600
+
+  # 2. CloudFront Origin Access Control (OAC) for secure S3 integration
+  CloudFrontOAC:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub '${BucketNamePrefix}-OAC-${Environment}'
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  # 3. Amazon CloudFront Distribution for global CDN caching and HTTPS delivery
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Comment: !Sub 'Regional Bazaar ${Environment} Product CDN'
+        Enabled: true
+        HttpVersion: http2and3
+        PriceClass: PriceClass_200
+        Origins:
+          - Id: S3ProductOrigin
+            DomainName: !GetAtt ProductStorageBucket.RegionalDomainName
+            OriginAccessControlId: !GetAtt CloudFrontOAC.Id
+            S3OriginConfig: {}
+        DefaultCacheBehavior:
+          TargetOriginId: S3ProductOrigin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          CachedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          Compress: true
+          # Managed-CachingOptimized Cache Policy
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+
+  # 4. S3 Bucket Policy allowing CloudFront OAC to fetch product assets
+  ProductBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref ProductStorageBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowCloudFrontServicePrincipalReadOnly
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub '${ProductStorageBucket.Arn}/*'
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub 'arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}'
+
+  # 5. IAM Policy for EC2 / ECS application task to sync and upload to S3
+  AppStorageRolePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub '${BucketNamePrefix}-AppPolicy-${Environment}'
+      Description: Grants backend application permission to upload and manage product media in S3
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowS3MediaOperations
+            Effect: Allow
+            Action:
+              - s3:PutObject
+              - s3:GetObject
+              - s3:ListBucket
+              - s3:DeleteObject
+            Resource:
+              - !GetAtt ProductStorageBucket.Arn
+              - !Sub '${ProductStorageBucket.Arn}/*'
+
+Outputs:
+  BucketName:
+    Description: Name of the created Amazon S3 Bucket
+    Value: !Ref ProductStorageBucket
+    Export:
+      Name: !Sub '${AWS::StackName}-BucketName'
+
+  BucketArn:
+    Description: ARN of the created Amazon S3 Bucket
+    Value: !GetAtt ProductStorageBucket.Arn
+
+  CloudFrontDomainName:
+    Description: CloudFront CDN distribution domain name for product assets
+    Value: !GetAtt CloudFrontDistribution.DomainName
+    Export:
+      Name: !Sub '${AWS::StackName}-CloudFrontDomain'
+
+  CloudFrontDistributionId:
+    Description: CloudFront Distribution ID
+    Value: !Ref CloudFrontDistribution

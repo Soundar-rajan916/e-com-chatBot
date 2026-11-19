@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { getBaseUrl } from '../../api/client';
+import { BagIcon, CheckIcon, ArrowRightIcon, InfoIcon } from '../../components/icons';
 
 interface ChatBubble {
   id: string;
@@ -15,7 +16,7 @@ export const WhatsAppSimulatorPage: React.FC = () => {
     {
       id: 'init-1',
       sender: 'bot',
-      text: '👋 Welcome to Regional Store Support on WhatsApp!\n\nSend *LINK <code>* to connect your customer account, or ask any question about our products and order status.',
+      text: 'Welcome to Regional Store Support on WhatsApp!\n\nSend *LINK <code>* to connect your customer account, or ask any question about our products and order status.',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
@@ -167,11 +168,10 @@ export const WhatsAppSimulatorPage: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontWeight: 700,
-                fontSize: '1rem',
+                color: '#fff',
               }}
             >
-              🏪
+              <BagIcon size={18} />
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>Store Support</div>
@@ -220,7 +220,12 @@ export const WhatsAppSimulatorPage: React.FC = () => {
                   }}
                 >
                   <span>{m.timestamp}</span>
-                  {m.sender === 'user' && <span style={{ color: '#53bdeb' }}>✓✓</span>}
+                  {m.sender === 'user' && (
+                    <span style={{ color: '#53bdeb', display: 'inline-flex', alignItems: 'center' }}>
+                      <CheckIcon size={11} />
+                      <CheckIcon size={11} style={{ marginLeft: '-5px' }} />
+                    </span>
+                  )}
                 </div>
               </div>
             ))}
@@ -271,8 +276,9 @@ export const WhatsAppSimulatorPage: React.FC = () => {
                 justifyContent: 'center',
                 cursor: sending || !inputText.trim() ? 'not-allowed' : 'pointer',
               }}
+              aria-label="Send message"
             >
-              ➤
+              <ArrowRightIcon size={16} />
             </button>
           </form>
         </div>
@@ -328,8 +334,9 @@ export const WhatsAppSimulatorPage: React.FC = () => {
             </div>
           )}
 
-          <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '1rem', color: '#6b7280', fontSize: '0.85rem' }}>
-            💡 Messages sent here hit the backend webhook <code>/whatsapp/openwa/webhook</code>, trigger the inbound worker under advisory locking, and run the assistant pipeline.
+          <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '1rem', color: '#6b7280', fontSize: '0.85rem', display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
+            <InfoIcon size={14} style={{ marginTop: '2px', flexShrink: 0 }} />
+            <span>Messages sent here hit the backend webhook <code>/whatsapp/openwa/webhook</code>, trigger the inbound worker under advisory locking, and run the assistant pipeline.</span>
           </div>
         </div>
       </div>

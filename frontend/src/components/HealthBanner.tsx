@@ -1,4 +1,5 @@
 import React from 'react';
+import { AlertCircleIcon } from './icons';
 
 interface HealthBannerProps {
   isHealthy: boolean;
@@ -10,7 +11,7 @@ export const HealthBanner: React.FC<HealthBannerProps> = ({ isHealthy, message }
 
   return (
     <div className="health-banner error" role="alert">
-      <span>⚠️</span>
+      <AlertCircleIcon size={16} />
       <span>
         Service unavailable, retrying... {message ? `(${message})` : ''}
       </span>

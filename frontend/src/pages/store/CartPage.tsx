@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { getProductImageUrl, handleProductImageError } from '../../utils/productImages';
+import { BagIcon, AlertCircleIcon, TrashIcon, LockIcon, ShieldCheckIcon } from '../../components/icons';
 
 export const CartPage: React.FC = () => {
   const { cart, isLoading, updateQuantity, removeItem, emptyCart } = useCart();
@@ -14,7 +15,9 @@ export const CartPage: React.FC = () => {
   if (!cart || !Array.isArray(cart.items) || cart.items.length === 0) {
     return (
       <div className="empty-cart-page">
-        <div className="empty-cart-icon">🛒</div>
+        <div className="empty-cart-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+          <BagIcon size={56} />
+        </div>
         <h2>Your shopping cart is empty</h2>
         <p>Explore our curated regional products and find authentic handcrafts and staples.</p>
         <Link to="/products" className="btn-start-shopping">
@@ -70,10 +73,11 @@ export const CartPage: React.FC = () => {
                   </div>
 
                   {(!item.in_stock || item.quantity > item.stock_available) && (
-                    <div className="cart-stock-error">
+                    <div className="cart-stock-error" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <AlertCircleIcon size={14} />
                       {item.stock_available <= 0
-                        ? '⚠️ This product is currently out of stock.'
-                        : `⚠️ Stock limited: only ${item.stock_available} available.`}
+                        ? 'This product is currently out of stock.'
+                        : `Stock limited: only ${item.stock_available} available.`}
                     </div>
                   )}
                 </div>
@@ -108,8 +112,9 @@ export const CartPage: React.FC = () => {
                     className="cart-item-remove-btn"
                     onClick={() => void removeItem(item.product_id)}
                     title="Remove item"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                   >
-                    🗑️ Remove
+                    <TrashIcon size={14} /> Remove
                   </button>
                 </div>
               </div>
@@ -139,8 +144,9 @@ export const CartPage: React.FC = () => {
           </div>
 
           {!cart.is_checkout_ready && (
-            <div className="cart-checkout-blocked-notice">
-              ⚠️ Some items in your cart exceed available inventory. Please adjust quantities.
+            <div className="cart-checkout-blocked-notice" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <AlertCircleIcon size={16} />
+              <span>Some items in your cart exceed available inventory. Please adjust quantities.</span>
             </div>
           )}
 
@@ -154,8 +160,8 @@ export const CartPage: React.FC = () => {
           </button>
 
           <div className="cart-security-badges">
-            <span>🔒 Safe &amp; Secure Checkout</span>
-            <span>🛡️ 7-Day Return Guarantee</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><LockIcon size={13} /> Safe &amp; Secure Checkout</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><ShieldCheckIcon size={13} /> 7-Day Return Guarantee</span>
           </div>
         </div>
       </div>

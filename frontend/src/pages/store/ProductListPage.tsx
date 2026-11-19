@@ -5,6 +5,7 @@ import { CategoryItem, ProductItem } from '../../api/types';
 import { useCart } from '../../context/CartContext';
 import { useSupportWidget } from '../../hooks/useSupportWidget';
 import { getProductImageUrl, handleProductImageError } from '../../utils/productImages';
+import { BagIcon, ChatIcon } from '../../components/icons';
 
 const formatCategoryTitle = (catKey: string): string => {
   const map: Record<string, string> = {
@@ -88,8 +89,39 @@ export const ProductListPage: React.FC = () => {
 
   return (
     <div className="catalog-page">
+      {/* Editorial Collection Banner matching Wink reference */}
+      <section className="wink-catalog-banner" aria-label="Featured Collection Banner">
+        <div className="wink-banner-media">
+          <img
+            src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=1200&q=80"
+            alt="Explore The Various Collection of Regional Bazaar"
+            className="wink-banner-img"
+            onError={(e) => {
+              e.currentTarget.src = 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=1200&q=80';
+            }}
+          />
+        </div>
+        <div className="wink-banner-content">
+          <span className="wink-banner-eyebrow">- Collections</span>
+          <h2 className="wink-banner-title">
+            Explore The Various Collection of {category ? formatCategoryTitle(category) : 'Regional Bazaar'}
+          </h2>
+          <p className="wink-banner-subtitle">
+            Don't miss out to shopping collection from us! you'll not be let down.
+          </p>
+        </div>
+      </section>
+
+      <nav aria-label="Breadcrumb" className="wink-breadcrumb">
+        <Link to="/">Home</Link>
+        <span className="wink-breadcrumb-sep">&gt;</span>
+        <span className="wink-breadcrumb-current">
+          {category ? formatCategoryTitle(category) : 'Regional Bazaar Collection'}
+        </span>
+      </nav>
+
       <div className="catalog-header">
-        <h1>Product Catalog</h1>
+        <h1>{category ? formatCategoryTitle(category) : 'Regional Bazaar Collection'}</h1>
         <p className="catalog-count-note">
           Showing {products.length} of {totalCount} authentic products
         </p>
@@ -131,7 +163,7 @@ export const ProductListPage: React.FC = () => {
                   className={`filter-option-btn ${category === cat.category ? 'active' : ''}`}
                   onClick={() => updateParam('category', cat.category)}
                 >
-                  {cat.icon ? `${cat.icon} ` : ''}{formatCategoryTitle(cat.category)}
+                  {formatCategoryTitle(cat.category)}
                   {cat.count !== undefined ? ` (${cat.count})` : ''}
                 </button>
               ))}
@@ -196,16 +228,17 @@ export const ProductListPage: React.FC = () => {
                 {products.map((p) => {
                   const imgUrl = getProductImageUrl(p);
                   return (
-                    <div key={p.id} className="product-card">
+                    <div key={p.id} className={`product-card ${p.stock <= 0 ? 'out-of-stock' : ''}`}>
                       <Link to={`/products/${p.id}`} className="product-image-container">
                         <img
                           src={imgUrl}
                           alt={p.title}
                           className="product-card-img"
+                          loading="lazy"
                           onError={(e) => handleProductImageError(e, p.id)}
                         />
                         {p.stock <= 5 && p.stock > 0 && (
-                          <span className="stock-alert-badge">Only {p.stock} left</span>
+                          <span className="stock-alert-badge low">Only {p.stock} left</span>
                         )}
                         {p.stock === 0 && (
                           <span className="stock-alert-badge out">Out of Stock</span>
@@ -213,7 +246,10 @@ export const ProductListPage: React.FC = () => {
                       </Link>
 
                       <div className="product-card-body">
-                        <span className="product-category-tag">{p.category}</span>
+                        <div className="product-card-meta">
+                          <span className="product-category-tag">{p.category}</span>
+                          <span className="product-sku">{p.sku}</span>
+                        </div>
                         <Link to={`/products/${p.id}`} className="product-title-link">
                           <h3 className="product-title">{p.title}</h3>
                         </Link>
@@ -223,7 +259,9 @@ export const ProductListPage: React.FC = () => {
                           <span className="product-price">
                             ₹{Number(p.price_inr).toLocaleString('en-IN')}
                           </span>
-                          <span className="product-sku">SKU: {p.sku}</span>
+                          <span className={`product-stock-status ${p.stock > 0 ? 'in' : 'out'}`}>
+                            {p.stock > 0 ? 'In stock' : 'Out of stock'}
+                          </span>
                         </div>
 
                         <div className="product-card-actions">
@@ -233,7 +271,8 @@ export const ProductListPage: React.FC = () => {
                             onClick={() => void addItem(p.id, 1)}
                             disabled={p.stock <= 0}
                           >
-                            {p.stock > 0 ? 'Add to Cart' : 'Sold Out'}
+                            <BagIcon size={14} />
+                            <span>{p.stock > 0 ? 'Add to Cart' : 'Sold Out'}</span>
                           </button>
                           <button
                             type="button"
@@ -246,8 +285,10 @@ export const ProductListPage: React.FC = () => {
                               })
                             }
                             title="Ask AI assistant about this product in Tamil or English"
+                            aria-label="Ask AI about this product"
                           >
-                            Ask AI
+                            <ChatIcon size={14} />
+                            <span>Ask AI</span>
                           </button>
                         </div>
                       </div>

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { adminAdvanceOrder, adminCancelOrder, getAdminOrders } from '../../api/client';
 import { AdminOrderSummary } from '../../api/types';
+import { CheckIcon, RefreshIcon, PackageIcon } from '../../components/icons';
 
 export const AdminOrdersView: React.FC = () => {
   const [orders, setOrders] = useState<AdminOrderSummary[]>([]);
@@ -111,7 +112,11 @@ export const AdminOrdersView: React.FC = () => {
       case 'shipped':
         return <span className="admin-badge badge-shipped">Shipped</span>;
       case 'delivered':
-        return <span className="admin-badge badge-delivered">Delivered ✓</span>;
+        return (
+          <span className="admin-badge badge-delivered" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+            <CheckIcon size={12} /> Delivered
+          </span>
+        );
       case 'cancelled':
         return <span className="admin-badge badge-cancelled">Cancelled</span>;
       default:
@@ -121,9 +126,9 @@ export const AdminOrdersView: React.FC = () => {
 
   const getNextStageLabel = (currentStatus: string) => {
     const s = currentStatus.toLowerCase();
-    if (s === 'placed') return 'Push to Processing ➔';
-    if (s === 'processing') return 'Push to Shipped ➔';
-    if (s === 'shipped') return 'Mark as Delivered ✓';
+    if (s === 'placed') return 'Push to Processing';
+    if (s === 'processing') return 'Push to Shipped';
+    if (s === 'shipped') return 'Mark as Delivered';
     return null;
   };
 
@@ -141,8 +146,9 @@ export const AdminOrdersView: React.FC = () => {
           className="btn btn-outline-sm"
           onClick={() => void fetchOrders()}
           disabled={loading}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
         >
-          {loading ? 'Refreshing...' : '🔄 Refresh Orders'}
+          <RefreshIcon size={13} /> {loading ? 'Refreshing...' : 'Refresh Orders'}
         </button>
       </div>
 
@@ -198,7 +204,9 @@ export const AdminOrdersView: React.FC = () => {
         </div>
       ) : orders.length === 0 ? (
         <div className="admin-empty-state">
-          <div className="empty-icon">📦</div>
+          <div className="empty-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px', color: '#848D9A' }}>
+            <PackageIcon size={44} />
+          </div>
           <h4>No orders found</h4>
           <p>There are no customer orders matching the selected filter criteria.</p>
         </div>

@@ -181,7 +181,7 @@ describe('Admin Console Frontend Workflows', () => {
     });
 
     // Click quick fill Demo Admin
-    const adminBtn = screen.getByText('👑 Demo Admin');
+    const adminBtn = screen.getByText(/Demo Admin/i);
     fireEvent.click(adminBtn);
 
     const submitBtn = screen.getByText('Sign In to Console');
@@ -192,7 +192,7 @@ describe('Admin Console Frontend Workflows', () => {
       expect(screen.getByText('Regional Bazaar Store Management')).toBeInTheDocument();
       expect(screen.getByText('Store Orders Management')).toBeInTheDocument();
       expect(screen.getByText('ORD-10001')).toBeInTheDocument();
-      expect(screen.getByText('Push to Processing ➔')).toBeInTheDocument();
+      expect(screen.getByText(/Push to Processing/i)).toBeInTheDocument();
     });
 
     // Confirm that Support Tickets section has been removed completely
@@ -209,7 +209,7 @@ describe('Admin Console Frontend Workflows', () => {
       expect(screen.getByText('RETURN AMOUNT')).toBeInTheDocument();
       expect(screen.getByText('REASON OF RETURN')).toBeInTheDocument();
       expect(screen.getByText(/"Damaged item on delivery"/)).toBeInTheDocument();
-      expect(screen.getByText('✓ Approve Refund')).toBeInTheDocument();
+      expect(screen.getByText(/Approve Refund/i)).toBeInTheDocument();
     });
   });
 
@@ -218,13 +218,13 @@ describe('Admin Console Frontend Workflows', () => {
 
     fireEvent.click(screen.getByText('Console'));
     await waitFor(() => expect(screen.getByText('Support Agent Login')).toBeInTheDocument());
-    fireEvent.click(screen.getByText('👑 Demo Admin'));
+    fireEvent.click(screen.getByText(/Demo Admin/i));
     fireEvent.click(screen.getByText('Sign In to Console'));
 
     await waitFor(() => expect(screen.getByText('Store Orders Management')).toBeInTheDocument());
 
     // Click advance stage
-    const advanceBtn = screen.getByText('Push to Processing ➔');
+    const advanceBtn = screen.getByText(/Push to Processing/i);
     fireEvent.click(advanceBtn);
 
     await waitFor(() => {
@@ -237,17 +237,17 @@ describe('Admin Console Frontend Workflows', () => {
 
     fireEvent.click(screen.getByText('Console'));
     await waitFor(() => expect(screen.getByText('Support Agent Login')).toBeInTheDocument());
-    fireEvent.click(screen.getByText('👑 Demo Admin'));
+    fireEvent.click(screen.getByText(/Demo Admin/i));
     fireEvent.click(screen.getByText('Sign In to Console'));
 
     // Switch to Refunds tab
     await waitFor(() => expect(screen.getByText('Refunds')).toBeInTheDocument());
     fireEvent.click(screen.getByText('Refunds'));
 
-    await waitFor(() => expect(screen.getByText('✓ Approve Refund')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/Approve Refund/i)).toBeInTheDocument());
 
     // Approve the pending refund
-    fireEvent.click(screen.getByText('✓ Approve Refund'));
+    fireEvent.click(screen.getByText(/Approve Refund/i));
 
     await waitFor(() => {
       expect(screen.getByText(/approved and paid successfully/i)).toBeInTheDocument();

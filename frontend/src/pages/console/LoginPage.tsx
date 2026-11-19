@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { adminLogin, ApiError } from '../../api/client';
 import { Agent } from '../../api/types';
+import { AlertCircleIcon, CrownIcon, UserIcon } from '../../components/icons';
 
 interface LoginPageProps {
   onLoginSuccess?: (agent: Agent) => void;
@@ -54,8 +55,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         </div>
 
         {error && (
-          <div className="login-error-alert" role="alert">
-            <span>⚠️ {error}</span>
+          <div className="login-error-alert" role="alert" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <AlertCircleIcon size={16} />
+            <span>{error}</span>
           </div>
         )}
 
@@ -104,15 +106,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               type="button"
               className="btn btn-outline-sm"
               onClick={() => handleQuickFill('admin@example.com', 'AdminPass123!')}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             >
-              👑 Demo Admin
+              <CrownIcon size={14} /> Demo Admin
             </button>
             <button
               type="button"
               className="btn btn-outline-sm"
               onClick={() => handleQuickFill('agent@example.com', 'AgentPass123!')}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             >
-              🎧 Demo Agent
+              <UserIcon size={14} /> Demo Agent
             </button>
           </div>
         </div>

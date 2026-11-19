@@ -11,6 +11,15 @@ import {
   EscalationStats,
   EscalationSummary,
 } from '../../api/types';
+import {
+  AlertTriangleIcon,
+  ChatIcon,
+  AlertCircleIcon,
+  RefreshIcon,
+  CheckIcon,
+  SearchIcon,
+  CheckCircleIcon,
+} from '../../components/icons';
 
 interface AdminCasesViewProps {
   currentAgent: Agent | null;
@@ -83,13 +92,13 @@ export const AdminCasesView: React.FC<AdminCasesViewProps> = ({ currentAgent: _c
   const getReasonLabel = (reasonType: string): string => {
     switch (reasonType) {
       case 'refund_pending_approval':
-        return '💰 Refund Approval';
+        return 'Refund Approval';
       case 'user_requested':
-        return '👤 Human Handoff';
+        return 'Human Handoff';
       case 'router_fallback':
-        return '🔀 Router Fallback';
+        return 'Router Fallback';
       case 'llm_failure':
-        return '⚡ LLM Fallback';
+        return 'LLM Fallback';
       default:
         return reasonType;
     }
@@ -126,9 +135,12 @@ export const AdminCasesView: React.FC<AdminCasesViewProps> = ({ currentAgent: _c
               background: viewMode === 'escalations' ? '#ffffff' : 'transparent',
               color: viewMode === 'escalations' ? '#1e293b' : '#64748b',
               boxShadow: viewMode === 'escalations' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
             }}
           >
-            🚨 Escalations Queue ({stats?.open_count ?? 0})
+            <AlertTriangleIcon size={14} /> Escalations Queue ({stats?.open_count ?? 0})
           </button>
           <button
             type="button"
@@ -144,17 +156,20 @@ export const AdminCasesView: React.FC<AdminCasesViewProps> = ({ currentAgent: _c
               background: viewMode === 'conversations' ? '#ffffff' : 'transparent',
               color: viewMode === 'conversations' ? '#1e293b' : '#64748b',
               boxShadow: viewMode === 'conversations' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
             }}
           >
-            💬 All Chats & Bot Traces ({conversations.length > 0 ? conversations.length : 'Browse'})
+            <ChatIcon size={14} /> All Chats & Bot Traces ({conversations.length > 0 ? conversations.length : 'Browse'})
           </button>
         </div>
       </div>
 
       {/* Error banner */}
       {error && (
-        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', padding: '0.75rem 1rem', borderRadius: '8px', marginBottom: '1rem' }}>
-          ⚠️ {error}
+        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', padding: '0.75rem 1rem', borderRadius: '8px', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <AlertCircleIcon size={16} /> {error}
         </div>
       )}
 
@@ -256,18 +271,23 @@ export const AdminCasesView: React.FC<AdminCasesViewProps> = ({ currentAgent: _c
                 border: '1px solid #cbd5e1',
                 background: '#ffffff',
                 cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
               }}
             >
-              {loading ? 'Refreshing...' : '🔄 Refresh'}
+              <RefreshIcon size={13} /> {loading ? 'Refreshing...' : 'Refresh'}
             </button>
           </div>
 
           {/* Table */}
           {loading && escalations.length === 0 ? (
-            <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>⏳ Loading escalation cases...</div>
+            <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>Loading escalation cases...</div>
           ) : escalations.length === 0 ? (
             <div style={{ padding: '3rem 1rem', textAlign: 'center', background: '#ffffff', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <span style={{ fontSize: '2rem' }}>🎉</span>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.5rem' }}>
+                <CheckCircleIcon size={36} color="#10b981" />
+              </div>
               <h4 style={{ margin: '0.5rem 0 0.25rem', color: '#1e293b' }}>No Escalations Found</h4>
               <p style={{ margin: 0, color: '#64748b', fontSize: '0.875rem' }}>
                 All customer queries are currently resolved or handled by the assistant.
@@ -393,7 +413,7 @@ export const AdminCasesView: React.FC<AdminCasesViewProps> = ({ currentAgent: _c
                   textTransform: 'capitalize',
                 }}
               >
-                {ch === 'all' ? 'All Channels' : ch === 'whatsapp' ? '🟢 WhatsApp' : '🌐 Web Chat'}
+                {ch === 'all' ? 'All Channels' : ch === 'whatsapp' ? 'WhatsApp' : 'Web Chat'}
               </button>
             ))}
 
@@ -409,17 +429,22 @@ export const AdminCasesView: React.FC<AdminCasesViewProps> = ({ currentAgent: _c
                 border: '1px solid #cbd5e1',
                 background: '#ffffff',
                 cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
               }}
             >
-              {convLoading ? 'Refreshing...' : '🔄 Refresh Chats'}
+              <RefreshIcon size={13} /> {convLoading ? 'Refreshing...' : 'Refresh Chats'}
             </button>
           </div>
 
           {convLoading && conversations.length === 0 ? (
-            <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>⏳ Loading customer chat sessions...</div>
+            <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>Loading customer chat sessions...</div>
           ) : filteredConversations.length === 0 ? (
             <div style={{ padding: '3rem 1rem', textAlign: 'center', background: '#ffffff', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <span style={{ fontSize: '2rem' }}>💬</span>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.5rem' }}>
+                <ChatIcon size={36} color="#64748b" />
+              </div>
               <h4 style={{ margin: '0.5rem 0 0.25rem', color: '#1e293b' }}>No Conversations Found</h4>
               <p style={{ margin: 0, color: '#64748b', fontSize: '0.875rem' }}>No chat sessions match the selected filter.</p>
             </div>
@@ -455,7 +480,7 @@ export const AdminCasesView: React.FC<AdminCasesViewProps> = ({ currentAgent: _c
                           background: conv.channel === 'whatsapp' ? '#dcfce7' : '#e0f2fe',
                           color: conv.channel === 'whatsapp' ? '#166534' : '#0369a1',
                         }}>
-                          {conv.channel === 'whatsapp' ? '🟢 WhatsApp' : '🌐 Web'}
+                          {conv.channel === 'whatsapp' ? 'WhatsApp' : 'Web'}
                         </span>
                       </td>
                       <td style={{ padding: '0.75rem 1rem' }}>
@@ -472,8 +497,8 @@ export const AdminCasesView: React.FC<AdminCasesViewProps> = ({ currentAgent: _c
                       </td>
                       <td style={{ padding: '0.75rem 1rem' }}>
                         {conv.has_traces ? (
-                          <span style={{ padding: '3px 8px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0' }}>
-                            ✓ Traces Logged
+                          <span style={{ padding: '3px 8px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <CheckIcon size={12} /> Traces Logged
                           </span>
                         ) : (
                           <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>No traces</span>
@@ -498,9 +523,12 @@ export const AdminCasesView: React.FC<AdminCasesViewProps> = ({ currentAgent: _c
                             fontSize: '0.8rem',
                             fontWeight: 600,
                             cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
                           }}
                         >
-                          Inspect Traces 🔍
+                          <SearchIcon size={13} /> Inspect Traces
                         </button>
                       </td>
                     </tr>

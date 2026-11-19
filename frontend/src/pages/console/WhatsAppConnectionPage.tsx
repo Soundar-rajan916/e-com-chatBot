@@ -6,6 +6,11 @@ import {
   resumeAdminWhatsApp,
 } from '../../api/client';
 import { Agent } from '../../api/types';
+import {
+  AlertTriangleIcon,
+  CheckCircleIcon,
+  LinkIcon,
+} from '../../components/icons';
 
 interface WhatsAppStatusData {
   enabled: boolean;
@@ -129,7 +134,7 @@ export const WhatsAppConnectionPage: React.FC<{ currentAgent: Agent }> = ({ curr
         }}
       >
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-          <span style={{ fontSize: '1.5rem', lineHeight: 1 }}>⚠️</span>
+          <AlertTriangleIcon size={24} style={{ color: '#d97706', flexShrink: 0, marginTop: '2px' }} />
           <div>
             <h3 style={{ margin: '0 0 0.5rem', color: '#92400e', fontSize: '1rem', fontWeight: 600 }}>
               Operational Risk Disclosure
@@ -185,10 +190,13 @@ export const WhatsAppConnectionPage: React.FC<{ currentAgent: Agent }> = ({ curr
                         borderRadius: '9999px',
                         fontWeight: 700,
                         fontSize: '0.85rem',
-                        display: 'inline-block',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
                       }}
                     >
-                      ● {badge.label}
+                      <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'currentColor' }} />
+                      {badge.label}
                     </span>
                   );
                 })()}
@@ -230,7 +238,7 @@ export const WhatsAppConnectionPage: React.FC<{ currentAgent: Agent }> = ({ curr
                       cursor: actionLoading ? 'not-allowed' : 'pointer',
                     }}
                   >
-                    ▶ Resume Outbound Replies
+                    Resume Outbound Replies
                   </button>
                 ) : (
                   <button
@@ -247,7 +255,7 @@ export const WhatsAppConnectionPage: React.FC<{ currentAgent: Agent }> = ({ curr
                       cursor: actionLoading ? 'not-allowed' : 'pointer',
                     }}
                   >
-                    ⏸ Pause Outbound Replies
+                    Pause Outbound Replies
                   </button>
                 )}
                 <a
@@ -264,10 +272,10 @@ export const WhatsAppConnectionPage: React.FC<{ currentAgent: Agent }> = ({ curr
                     fontSize: '0.9rem',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '0.25rem',
+                    gap: '0.35rem',
                   }}
                 >
-                  OpenWA Dashboard ↗
+                  OpenWA Dashboard <LinkIcon size={14} />
                 </a>
               </div>
             </div>
@@ -310,7 +318,9 @@ export const WhatsAppConnectionPage: React.FC<{ currentAgent: Agent }> = ({ curr
             </div>
           ) : data?.status === 'ready' ? (
             <div style={{ textAlign: 'center', padding: '2rem 1rem' }}>
-              <span style={{ fontSize: '3rem', display: 'block', marginBottom: '0.5rem' }}>📱</span>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.75rem' }}>
+                <CheckCircleIcon size={44} style={{ color: '#16a34a' }} />
+              </div>
               <h3 style={{ fontSize: '1.1rem', color: '#16a34a', margin: '0 0 0.5rem' }}>Device Paired & Online</h3>
               <p style={{ fontSize: '0.85rem', color: '#6b7280', margin: 0 }}>
                 This instance is linked and actively listening for incoming customer messages.

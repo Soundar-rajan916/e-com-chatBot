@@ -1,4 +1,5 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
+import { BagIcon } from './icons';
 
 interface Props {
   children: ReactNode;
@@ -37,7 +38,9 @@ export class ErrorBoundary extends Component<Props, State> {
           boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
           border: '1px solid #e2e8f0'
         }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🛍️</div>
+          <div style={{ marginBottom: '1rem', color: '#111111', display: 'flex', justifyContent: 'center' }}>
+            <BagIcon size={48} />
+          </div>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#1e293b', marginBottom: '0.5rem' }}>
             Oops! Something went wrong
           </h2>

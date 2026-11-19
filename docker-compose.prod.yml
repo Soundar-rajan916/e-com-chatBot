@@ -1,0 +1,87 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ecom_prod_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ecom_prod_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Database password must be set in .env.prod}
+      POSTGRES_DB: ${POSTGRES_DB:-ecom_prod}
+    volumes:
+      - prod_pgdata:/var/lib/postgresql/data
+      - ./backend/scripts/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ecom_prod_user} -d ${POSTGRES_DB:-ecom_prod}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: ecom_prod_redis
+    restart: always
+    command: redis-server --appendonly yes
+    volumes:
+      - prod_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ecom_prod_backend
+    restart: always
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      APP_ENV: prod
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-ecom_prod_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ecom_prod}
+      REDIS_URL: redis://redis:6379/0
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://yourdomain.com}
+      GROQ_API_KEY: ${GROQ_API_KEY:?Groq API Key must be set in .env.prod}
+      # Amazon S3 & CloudFront Storage Configuration
+      STORAGE_BACKEND: s3
+      AWS_REGION: ${AWS_REGION:-ap-south-1}
+      AWS_S3_BUCKET_NAME: ${AWS_S3_BUCKET_NAME:?S3 Bucket name required}
+      AWS_S3_CUSTOM_DOMAIN: ${AWS_S3_CUSTOM_DOMAIN:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      # WhatsApp Integration
+      WHATSAPP_ENABLED: ${WHATSAPP_ENABLED:-false}
+      OPENWA_BASE_URL: http://openwa:2785
+      OPENWA_SESSION_ID: ${OPENWA_SESSION_ID:-}
+      OPENWA_API_KEY: ${OPENWA_API_KEY:-}
+      OPENWA_WEBHOOK_SECRET: ${OPENWA_WEBHOOK_SECRET:-}
+      OPENWA_ADMIN_API_KEY: ${OPENWA_ADMIN_API_KEY:-}
+      WHATSAPP_PHONE_NUMBER: ${WHATSAPP_PHONE_NUMBER:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - prod_hfcache:/root/.cache/huggingface
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+        VITE_S3_ASSETS_BASE_URL: ${VITE_S3_ASSETS_BASE_URL:-}
+    container_name: ecom_prod_frontend
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+
+volumes:
+  prod_pgdata:
+  prod_redisdata:
+  prod_hfcache:

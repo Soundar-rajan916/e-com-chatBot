@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Agent } from '../../api/types';
+import {
+  CreditCardIcon,
+  HeadphonesIcon,
+  PackageIcon,
+  ShieldIcon,
+} from '../../components/icons';
 import { AdminCasesView } from './AdminCasesView';
 import { AdminOrdersView } from './AdminOrdersView';
 import { AdminRefundsView } from './AdminRefundsView';
@@ -30,13 +36,15 @@ export const InboxPage: React.FC<InboxPageProps> = ({ currentAgent, onLogout }) 
       {/* Top Header */}
       <div className="inbox-header">
         <div>
-          <h2>Regional Bazaar Store & Support Management</h2>
+          <h2>Regional Bazaar Store Management</h2>
           <p className="inbox-subtitle">
             Fulfill store orders, manage customer returns, and inspect AI bot traces.
           </p>
         </div>
         <div className="inbox-agent-badge">
-          <span className="agent-avatar">🛡️</span>
+          <span className="agent-avatar" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+            <ShieldIcon size={16} />
+          </span>
           <div className="agent-meta">
             <strong>{currentAgent?.name || 'Admin'}</strong>
             <span className="agent-role">({currentAgent?.role || 'admin'})</span>
@@ -54,7 +62,9 @@ export const InboxPage: React.FC<InboxPageProps> = ({ currentAgent, onLogout }) 
           className={`admin-nav-tab ${activeTab === 'orders' ? 'active' : ''}`}
           onClick={() => handleTabChange('orders')}
         >
-          <span className="tab-icon">📦</span>
+          <span className="tab-icon" style={{ display: 'inline-flex', alignItems: 'center' }}>
+            <PackageIcon size={16} />
+          </span>
           <span>All Orders</span>
         </button>
         <button
@@ -62,7 +72,9 @@ export const InboxPage: React.FC<InboxPageProps> = ({ currentAgent, onLogout }) 
           className={`admin-nav-tab ${activeTab === 'refunds' ? 'active' : ''}`}
           onClick={() => handleTabChange('refunds')}
         >
-          <span className="tab-icon">💳</span>
+          <span className="tab-icon" style={{ display: 'inline-flex', alignItems: 'center' }}>
+            <CreditCardIcon size={16} />
+          </span>
           <span>Refunds</span>
         </button>
         <button
@@ -70,7 +82,9 @@ export const InboxPage: React.FC<InboxPageProps> = ({ currentAgent, onLogout }) 
           className={`admin-nav-tab ${activeTab === 'cases' ? 'active' : ''}`}
           onClick={() => handleTabChange('cases')}
         >
-          <span className="tab-icon">🎧</span>
+          <span className="tab-icon" style={{ display: 'inline-flex', alignItems: 'center' }}>
+            <HeadphonesIcon size={16} />
+          </span>
           <span>Support Cases & Traces</span>
         </button>
       </div>

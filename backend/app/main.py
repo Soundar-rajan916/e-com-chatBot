@@ -195,6 +195,13 @@ def create_app() -> FastAPI:
     app.include_router(whatsapp_openwa_router)
     app.include_router(customer_whatsapp_router)
 
+    from pathlib import Path
+    from fastapi.staticfiles import StaticFiles
+
+    media_dir = Path(__file__).resolve().parent.parent / "media" / "products"
+    media_dir.mkdir(parents=True, exist_ok=True)
+    app.mount("/media/products", StaticFiles(directory=str(media_dir)), name="media_products")
+
     if is_dev:
         app.include_router(customers_router, tags=["Demo Customers"])
         logger.info("Demo customers route registered at /customers/demo (APP_ENV=dev)")

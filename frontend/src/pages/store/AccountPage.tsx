@@ -7,6 +7,7 @@ import {
   unlinkCustomerWhatsApp,
 } from '../../api/client';
 import { CustomerAccount } from '../../api/types';
+import { ChatIcon, CheckIcon, LinkIcon, ClockIcon } from '../../components/icons';
 
 export const AccountPage: React.FC = () => {
   const [customer, setCustomer] = useState<CustomerAccount | null>(null);
@@ -157,7 +158,7 @@ export const AccountPage: React.FC = () => {
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '1.5rem' }}>💬</span>
+            <ChatIcon size={22} />
             <h2 style={{ fontSize: '1.2rem', fontWeight: 600, margin: 0 }}>WhatsApp Assistant Support</h2>
           </div>
           {waStatus?.is_linked ? (
@@ -169,9 +170,12 @@ export const AccountPage: React.FC = () => {
                 borderRadius: '9999px',
                 fontSize: '0.8rem',
                 fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
               }}
             >
-              ✓ Linked ({waStatus.phone_masked})
+              <CheckIcon size={12} /> Linked ({waStatus.phone_masked})
             </span>
           ) : (
             <span
@@ -238,9 +242,12 @@ export const AccountPage: React.FC = () => {
                   padding: '0.6rem 1.25rem',
                   fontWeight: 600,
                   cursor: generatingCode ? 'not-allowed' : 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
                 }}
               >
-                {generatingCode ? 'Generating Code...' : '🔗 Link WhatsApp Account'}
+                <LinkIcon size={14} /> {generatingCode ? 'Generating Code...' : 'Link WhatsApp Account'}
               </button>
             ) : (
               <div
@@ -266,8 +273,8 @@ export const AccountPage: React.FC = () => {
                 >
                   {linkData.code}
                 </div>
-                <div style={{ fontSize: '0.85rem', color: timeLeft < 60 ? '#dc2626' : '#64748b', marginBottom: '1rem' }}>
-                  ⏳ Code expires in <strong>{Math.floor(timeLeft / 60)}m {timeLeft % 60}s</strong>
+                <div style={{ fontSize: '0.85rem', color: timeLeft < 60 ? '#dc2626' : '#64748b', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <ClockIcon size={14} /> Code expires in <strong>{Math.floor(timeLeft / 60)}m {timeLeft % 60}s</strong>
                 </div>
 
                 <div style={{ fontSize: '0.9rem', color: '#334155', marginBottom: '1rem' }}>
@@ -294,7 +301,8 @@ export const AccountPage: React.FC = () => {
                         gap: '0.5rem',
                       }}
                     >
-                      <span>💬 Open in WhatsApp</span>
+                      <ChatIcon size={16} />
+                      <span>Open in WhatsApp</span>
                     </a>
                   )}
                   <button

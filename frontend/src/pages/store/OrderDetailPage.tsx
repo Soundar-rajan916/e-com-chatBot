@@ -7,6 +7,7 @@ import {
 } from '../../api/client';
 import { OrderDetail } from '../../api/types';
 import { useSupportWidget } from '../../hooks/useSupportWidget';
+import { ChatIcon, CheckIcon, ClockIcon } from '../../components/icons';
 
 const STATUS_STEPS = ['pending', 'confirmed', 'shipped', 'out_for_delivery', 'delivered'];
 
@@ -146,8 +147,9 @@ export const OrderDetailPage: React.FC = () => {
                 total_amount_inr: order.total_amount_inr,
               })
             }
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            💬 Ask AI Support
+            <ChatIcon size={14} /> Ask AI Support
           </button>
 
           {order.is_cancellable && (
@@ -188,7 +190,9 @@ export const OrderDetailPage: React.FC = () => {
                   key={step}
                   className={`step-item ${isDone ? 'done' : ''} ${isCurrent ? 'current' : ''}`}
                 >
-                  <div className="step-circle">{isDone ? '✓' : idx + 1}</div>
+                  <div className="step-circle" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {isDone ? <CheckIcon size={12} /> : idx + 1}
+                  </div>
                   <span className="step-label">
                     {step.replace(/_/g, ' ').toUpperCase()}
                   </span>
@@ -218,8 +222,8 @@ export const OrderDetailPage: React.FC = () => {
             {order.refund.reason}
           </p>
           {order.refund.status === 'pending_approval' && (
-            <p className="refund-pending-text">
-              ⏳ This refund exceeds the automatic approval threshold and has been assigned to our
+            <p className="refund-pending-text" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <ClockIcon size={15} /> This refund exceeds the automatic approval threshold and has been assigned to our
               human support team for verification.
             </p>
           )}

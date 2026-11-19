@@ -533,6 +533,74 @@ class Product(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
+    image: Mapped["ProductImage | None"] = relationship(
+        "ProductImage", back_populates="product", uselist=False, cascade="all, delete-orphan"
+    )
+    image_plan: Mapped["ProductImagePlan | None"] = relationship(
+        "ProductImagePlan", back_populates="product", uselist=False, cascade="all, delete-orphan"
+    )
+
+
+class ProductImagePlan(Base):
+    __tablename__ = "product_image_plans"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    product_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("products.id", ondelete="CASCADE"), unique=True, nullable=False, index=True
+    )
+    item: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
+    queries: Mapped[Any] = mapped_column(JSONB, nullable=True)
+    must_show: Mapped[str | None] = mapped_column(Text, nullable=True)
+    must_not_show: Mapped[str | None] = mapped_column(Text, nullable=True)
+    people_ok: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    status: Mapped[str] = mapped_column(String(50), default="planned", nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    product: Mapped["Product"] = relationship("Product", back_populates="image_plan")
+
+
+class ProductImage(Base):
+    __tablename__ = "product_images"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    product_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("products.id", ondelete="CASCADE"), unique=True, nullable=False, index=True
+    )
+    provider: Mapped[str] = mapped_column(String(50), nullable=False)
+    provider_photo_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    source_page_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    photographer: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    photographer_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    licence: Mapped[str | None] = mapped_column(Text, nullable=True)
+    credit_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    image_url_large: Mapped[str | None] = mapped_column(Text, nullable=True)
+    image_url_thumb: Mapped[str | None] = mapped_column(Text, nullable=True)
+    local_path: Mapped[str | None] = mapped_column(Text, nullable=True)
+    width: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    height: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    phash: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    status: Mapped[str] = mapped_column(String(50), nullable=False, default="missing", index=True)  # verified | needs_review | rejected | missing
+    score: Mapped[Decimal | None] = mapped_column(Numeric(4, 3), nullable=True)
+    verdict: Mapped[Any] = mapped_column(JSONB, nullable=True)
+    assigned_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    product: Mapped["Product"] = relationship("Product", back_populates="image")
+
+    @property
+    def url(self) -> str | None:
+        return self.image_url_large or self.local_path
+
 
 class PolicyChunk(Base):
     __tablename__ = "policy_chunks"

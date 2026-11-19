@@ -5,6 +5,7 @@ import { ProductItem } from '../../api/types';
 import { useCart } from '../../context/CartContext';
 import { useSupportWidget } from '../../hooks/useSupportWidget';
 import { getProductImageUrl, handleProductImageError } from '../../utils/productImages';
+import { BagIcon, ShieldCheckIcon, RulerIcon, ChatIcon, CheckIcon } from '../../components/icons';
 
 export const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -87,9 +88,27 @@ export const ProductDetailPage: React.FC = () => {
             src={imgUrl}
             alt={product.title}
             className="detail-main-img"
+            loading="lazy"
+            style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover' }}
             onError={(e) => handleProductImageError(e, product.id)}
           />
           <div className="image-sku-badge">SKU: {product.sku}</div>
+          {/* Photographer credit line on Product Detail Page only */}
+          {((import.meta.env.VITE_SHOW_IMAGE_CREDITS ?? 'true') !== 'false') && product.image_credit && (
+            <div
+              className="detail-image-credit"
+              style={{
+                fontSize: '0.75rem',
+                color: '#64748b',
+                marginTop: '8px',
+                textAlign: 'center',
+                lineHeight: 1.4,
+              }}
+            >
+              <span style={{ opacity: 0.8 }}>Photo credit / புகைப்பட உதவி: </span>
+              <span style={{ fontWeight: 500 }}>{product.image_credit}</span>
+            </div>
+          )}
         </div>
 
         {/* Right: Product Info & Actions */}
@@ -110,11 +129,13 @@ export const ProductDetailPage: React.FC = () => {
               {productStock > 0 ? `In Stock (${productStock} units available)` : 'Out of Stock'}
             </span>
             {inCartQty > 0 && (
-              <span className="cart-existing-badge" title="Units already added to your cart">
-                🛒 {inCartQty} in cart
+              <span className="cart-existing-badge" title="Units already added to your cart" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <BagIcon size={13} /> {inCartQty} in cart
               </span>
             )}
-            <span className="return-policy-badge">🛡️ 7-Day Hassle-Free Returns</span>
+            <span className="return-policy-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <ShieldCheckIcon size={14} /> 7-Day Hassle-Free Returns
+            </span>
           </div>
 
           {/* Description Section */}
@@ -133,7 +154,9 @@ export const ProductDetailPage: React.FC = () => {
           <div className="detail-size-selection" style={{ margin: '16px 0' }}>
             <div className="size-label-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 600 }}>
               <span className="size-title">Select Size:</span>
-              <span className="size-guide-hint" style={{ color: '#0d9488', cursor: 'pointer' }}>📏 Men's Fit Guide</span>
+              <span className="size-guide-hint" style={{ color: '#0d9488', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <RulerIcon size={14} /> Men's Fit Guide
+              </span>
             </div>
             <div className="size-pills-row" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {['formal_shirts', 'casual_shirts', 'tshirts_polos', 'blazers_suits', 'mens_wear'].includes(product.category) ? (
@@ -284,14 +307,15 @@ export const ProductDetailPage: React.FC = () => {
                     price_inr: product.price_inr,
                   })
                 }
+                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
               >
-                💬 Ask AI about this product (தமிழ் / English)
+                <ChatIcon size={16} /> Ask AI about this product (தமிழ் / English)
               </button>
             </div>
 
             {addedNotice && (
-              <div className="added-to-cart-toast">
-                ✓ Added {quantity} item(s) to cart! <Link to="/cart">View Cart &rarr;</Link>
+              <div className="added-to-cart-toast" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                <CheckIcon size={16} /> Added {quantity} item(s) to cart! <Link to="/cart">View Cart &rarr;</Link>
               </div>
             )}
           </div>

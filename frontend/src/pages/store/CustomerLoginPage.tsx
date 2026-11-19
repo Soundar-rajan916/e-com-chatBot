@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { InfoIcon } from '../../components/icons';
 
 export const CustomerLoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -69,8 +70,8 @@ export const CustomerLoginPage: React.FC = () => {
           <p>
             Don't have an account? <Link to={`/register?redirect=${encodeURIComponent(redirect)}`}>Register here</Link>
           </p>
-          <p className="demo-accounts-hint">
-            💡 Demo credentials: <code>customer1@example.com</code> / <code>CustomerPass123!</code>
+          <p className="demo-accounts-hint" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+            <InfoIcon size={14} /> Demo credentials: <code>customer1@example.com</code> / <code>CustomerPass123!</code>
           </p>
         </div>
       </div>

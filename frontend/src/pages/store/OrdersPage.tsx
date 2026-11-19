@@ -4,6 +4,7 @@ import { getCustomerOrders } from '../../api/client';
 import { OrderDetail } from '../../api/types';
 import { useAuth } from '../../context/AuthContext';
 import { useSupportWidget } from '../../hooks/useSupportWidget';
+import { PackageIcon, ChatIcon } from '../../components/icons';
 
 export const OrdersPage: React.FC = () => {
   const { customer } = useAuth();
@@ -52,7 +53,9 @@ export const OrdersPage: React.FC = () => {
 
       {orders.length === 0 ? (
         <div className="empty-orders-card">
-          <div className="empty-icon">📦</div>
+          <div className="empty-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px', color: '#848D9A' }}>
+            <PackageIcon size={48} />
+          </div>
           <h2>No orders placed yet</h2>
           <p>You haven't made any purchases with us yet.</p>
           <Link to="/products" className="btn-start-shopping">
@@ -107,8 +110,9 @@ export const OrdersPage: React.FC = () => {
                         total_amount_inr: o.total_amount_inr,
                       })
                     }
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                   >
-                    💬 Ask AI about this order
+                    <ChatIcon size={14} /> Ask AI about this order
                   </button>
                 </div>
               </div>

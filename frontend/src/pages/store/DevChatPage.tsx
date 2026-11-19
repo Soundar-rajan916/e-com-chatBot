@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useSupportWidget } from '../../hooks/useSupportWidget';
+import { SettingsIcon } from '../../components/icons';
 
 export const DevChatPage: React.FC = () => {
   const { openWidget, closeWidget, toggleWidget, setWidgetContext } = useSupportWidget();
@@ -15,7 +16,9 @@ export const DevChatPage: React.FC = () => {
   return (
     <div className="dev-chat-page">
       <div className="dev-chat-card">
-        <h1>🛠️ Widget Dev &amp; Debugging Harness</h1>
+        <h1 style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+          <SettingsIcon size={24} /> Widget Dev &amp; Debugging Harness
+        </h1>
         <p>
           This route (<code>/dev/chat</code>) verifies and exercises the standalone Support Chat
           Widget embedded in the Shadow DOM.

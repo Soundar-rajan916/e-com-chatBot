@@ -12,14 +12,25 @@ import {
   getProductImageUrl,
   handleProductImageError,
 } from '../../utils/productImages';
+import {
+  ShieldCheckIcon,
+  TagIcon,
+  UsersIcon,
+  BagIcon,
+  ChatIcon,
+  StarRating,
+  CheckIcon,
+  LockIcon,
+  TruckIcon,
+  RotateCcwIcon,
+  HeadphonesIcon,
+} from '../../components/icons';
 
 export const HomePage: React.FC = () => {
   const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<ProductItem[]>([]);
   const [policy, setPolicy] = useState<StorePolicy | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [newsletterEmail, setNewsletterEmail] = useState('');
-  const [newsletterSuccess, setNewsletterSuccess] = useState(false);
   const { addItem } = useCart();
   const { askAboutProduct } = useSupportWidget();
 
@@ -51,14 +62,6 @@ export const HomePage: React.FC = () => {
     void loadData();
   }, []);
 
-  const handleNewsletterSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newsletterEmail.trim()) {
-      setNewsletterSuccess(true);
-      setNewsletterEmail('');
-    }
-  };
-
   // Dedicated Men's Wear Category Shortcuts
   const categoryShortcuts = [
     { name: 'Formal Shirts', cat: 'formal_shirts', image: CATEGORY_PHOTOS['formal_shirts'], bg: '#e0f2fe', border: '#bae6fd' },
@@ -89,25 +92,25 @@ export const HomePage: React.FC = () => {
             </p>
 
             <div className="viva-hero-actions">
-              <Link to="/products?category=mens_wear" className="viva-hero-cta">
+              <Link to="/products" className="viva-hero-cta">
                 Shop Men's Wear &rarr;
               </Link>
-              <Link to="/products?category=sarees_ethnic" className="viva-hero-secondary-btn">
+              <Link to="/products?category=dhotis_ethnic" className="viva-hero-secondary-btn">
                 Explore Dhotis
               </Link>
             </div>
 
             <div className="viva-hero-trust-badges">
               <div className="trust-badge-item">
-                <span className="trust-badge-icon">🛡️</span>
+                <span className="trust-badge-icon"><ShieldCheckIcon size={16} /></span>
                 <span>Premium Quality</span>
               </div>
               <div className="trust-badge-item">
-                <span className="trust-badge-icon">🏷️</span>
+                <span className="trust-badge-icon"><TagIcon size={16} /></span>
                 <span>Great Prices</span>
               </div>
               <div className="trust-badge-item">
-                <span className="trust-badge-icon">👥</span>
+                <span className="trust-badge-icon"><UsersIcon size={16} /></span>
                 <span>Trusted by 10k+ Customers</span>
               </div>
             </div>
@@ -123,46 +126,38 @@ export const HomePage: React.FC = () => {
 
               {/* Showcase Image Montage Container */}
               <div className="viva-hero-montage">
-                <div className="montage-item primary">
+                <Link to="/products?category=dhotis_ethnic" className="montage-item primary">
                   <img
                     src={HERO_SHOWCASE_PHOTOS.silkDhoti}
                     alt="Silk Dhoti & Kurta"
                     className="montage-img"
                   />
                   <span className="montage-caption">Silk Dhoti &amp; Kurta</span>
-                </div>
-                <div className="montage-item secondary">
+                </Link>
+                <Link to="/products?category=blazers_suits" className="montage-item secondary">
                   <img
                     src={HERO_SHOWCASE_PHOTOS.blazer}
                     alt="Tailored Blazer"
                     className="montage-img"
                   />
                   <span className="montage-caption">Tailored Blazer</span>
-                </div>
-                <div className="montage-item tertiary">
+                </Link>
+                <Link to="/products?category=casual_shirts" className="montage-item tertiary">
                   <img
                     src={HERO_SHOWCASE_PHOTOS.linenShirt}
                     alt="Pure Linen Shirt"
                     className="montage-img"
                   />
                   <span className="montage-caption">Pure Linen Shirt</span>
-                </div>
-                <div className="montage-item quaternary">
+                </Link>
+                <Link to="/products?category=footwear" className="montage-item quaternary">
                   <img
                     src={HERO_SHOWCASE_PHOTOS.leatherShoes}
                     alt="Leather Loafers"
                     className="montage-img"
                   />
                   <span className="montage-caption">Leather Loafers</span>
-                </div>
-              </div>
-
-              {/* Hero Carousel Dots */}
-              <div className="viva-hero-dots">
-                <span className="hero-dot active" />
-                <span className="hero-dot" />
-                <span className="hero-dot" />
-                <span className="hero-dot" />
+                </Link>
               </div>
             </div>
           </div>
@@ -199,7 +194,7 @@ export const HomePage: React.FC = () => {
       <section className="viva-products-section">
         <div className="viva-section-header">
           <div className="section-title-wrap">
-            <h2 className="viva-section-title">Top Picks For You ✨</h2>
+            <h2 className="viva-section-title">Top Picks For You</h2>
             <p className="viva-section-subtitle">
               Handcrafted, ethically sourced, and curated for authentic quality.
             </p>
@@ -248,8 +243,8 @@ export const HomePage: React.FC = () => {
 
                     {/* Star Rating */}
                     <div className="viva-product-rating">
-                      <span className="rating-stars">★★★★★</span>
-                      <span className="rating-count">({120 + (idx * 37)})</span>
+                      <StarRating count={5} size={13} />
+                      <span className="rating-count" style={{ marginLeft: '6px' }}>({120 + (idx * 37)})</span>
                     </div>
 
                     {/* Pricing */}
@@ -263,18 +258,19 @@ export const HomePage: React.FC = () => {
                     </div>
 
                     {/* Quick Action Buttons */}
-                    <div className="viva-product-actions">
+                    <div className="viva-product-actions product-card-actions">
                       <button
                         type="button"
                         className="viva-add-cart-btn btn-add-cart"
                         onClick={() => void addItem(p.id, 1)}
                         disabled={p.stock <= 0}
                       >
-                        <span className="btn-cart-icon" aria-hidden="true">🛒</span> Add to Cart
+                        <BagIcon size={14} />
+                        <span>{p.stock > 0 ? 'Add to Cart' : 'Sold Out'}</span>
                       </button>
                       <button
                         type="button"
-                        className="viva-ask-ai-btn"
+                        className="viva-ask-ai-btn btn-ask-ai"
                         onClick={() =>
                           askAboutProduct({
                             id: p.id,
@@ -283,8 +279,10 @@ export const HomePage: React.FC = () => {
                           })
                         }
                         title="Ask AI assistant about this product in Tamil or English"
+                        aria-label="Ask AI about this product"
                       >
-                        💬 Ask AI
+                        <ChatIcon size={14} />
+                        <span>Ask AI</span>
                       </button>
                     </div>
                   </div>
@@ -303,7 +301,7 @@ export const HomePage: React.FC = () => {
             <div className="promo-text-wrap">
               <span className="promo-eyebrow">Wedding &amp; Festive</span>
               <h3 className="promo-title">Pure Silk Dhotis &amp; Kurtas</h3>
-              <Link to="/products?category=sarees_ethnic" className="promo-link">
+              <Link to="/products?category=dhotis_ethnic" className="promo-link">
                 Shop Dhotis &rarr;
               </Link>
             </div>
@@ -321,7 +319,7 @@ export const HomePage: React.FC = () => {
             <div className="promo-text-wrap">
               <span className="promo-eyebrow">Summer Essentials</span>
               <h3 className="promo-title">100% Breathable Linen Shirts</h3>
-              <Link to="/products?category=mens_wear" className="promo-link">
+              <Link to="/products?category=casual_shirts" className="promo-link">
                 Shop Linen &rarr;
               </Link>
             </div>
@@ -357,10 +355,10 @@ export const HomePage: React.FC = () => {
       {/* 5. Loved By Thousands (Customer Testimonials) */}
       <section className="viva-testimonials-section">
         <div className="viva-testimonials-header">
-          <h2 className="testimonials-title">Loved By Thousands ❤️</h2>
-          <div className="testimonials-overall-rating">
+          <h2 className="testimonials-title">Loved By Thousands</h2>
+          <div className="testimonials-overall-rating" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
             <span className="overall-score">4.8/5 Average Rating</span>
-            <span className="overall-stars">★★★★★</span>
+            <StarRating count={5} size={14} />
           </div>
         </div>
 
@@ -375,10 +373,14 @@ export const HomePage: React.FC = () => {
               />
               <div>
                 <strong className="testimonial-name">Karthik R.</strong>
-                <span className="verified-badge">✓ Verified Buyer</span>
+                <span className="verified-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <CheckIcon size={12} /> Verified Buyer
+                </span>
               </div>
             </div>
-            <div className="testimonial-stars">★★★★★</div>
+            <div className="testimonial-stars" style={{ margin: '8px 0' }}>
+              <StarRating count={5} size={13} />
+            </div>
             <p className="testimonial-quote">
               "The pure silk dhoti set for my wedding was breathtaking. Exquisite zari border, perfect traditional drape, and fast delivery!"
             </p>
@@ -394,10 +396,14 @@ export const HomePage: React.FC = () => {
               />
               <div>
                 <strong className="testimonial-name">Arvind S.</strong>
-                <span className="verified-badge">✓ Verified Buyer</span>
+                <span className="verified-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <CheckIcon size={12} /> Verified Buyer
+                </span>
               </div>
             </div>
-            <div className="testimonial-stars">★★★★★</div>
+            <div className="testimonial-stars" style={{ margin: '8px 0' }}>
+              <StarRating count={5} size={13} />
+            </div>
             <p className="testimonial-quote">
               "Crisp collar structure, wrinkle-resistant cotton, and breathable linen. Easily the best formal and casual shirts I've ordered online."
             </p>
@@ -413,10 +419,14 @@ export const HomePage: React.FC = () => {
               />
               <div>
                 <strong className="testimonial-name">Michael T.</strong>
-                <span className="verified-badge">✓ Verified Buyer</span>
+                <span className="verified-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <CheckIcon size={12} /> Verified Buyer
+                </span>
               </div>
             </div>
-            <div className="testimonial-stars">★★★★★</div>
+            <div className="testimonial-stars" style={{ margin: '8px 0' }}>
+              <StarRating count={5} size={13} />
+            </div>
             <p className="testimonial-quote">
               "Superb tailoring on the blazers and chinos. Sizing was spot-on, and the AI assistant recommended the exact right sleeve and collar size!"
             </p>
@@ -424,49 +434,11 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 6. Newsletter Subscription Strip ("Stay in the Loop") */}
-      <section className="viva-newsletter-section">
-        <div className="viva-newsletter-card">
-          <div className="newsletter-icon-wrap">
-            <span className="newsletter-icon">✉️</span>
-          </div>
-
-          <div className="newsletter-text-wrap">
-            <h3 className="newsletter-title">Stay in the Loop</h3>
-            <p className="newsletter-subtitle">
-              Get exclusive deals, new artisan arrivals, and regional style inspiration straight to your inbox.
-            </p>
-          </div>
-
-          <form className="newsletter-form" onSubmit={handleNewsletterSubmit}>
-            <input
-              type="email"
-              className="newsletter-input"
-              placeholder="Enter your email address"
-              value={newsletterEmail}
-              onChange={(e) => setNewsletterEmail(e.target.value)}
-              required
-            />
-            <button type="submit" className="newsletter-btn">
-              Subscribe
-            </button>
-          </form>
-        </div>
-        {newsletterSuccess && (
-          <div className="newsletter-success-toast">
-            ✓ Thank you for subscribing! Check your inbox for exclusive regional offers.
-          </div>
-        )}
-        <p className="newsletter-privacy-note">
-          🔒 We respect your privacy. Unsubscribe anytime.
-        </p>
-      </section>
-
-      {/* 7. Value Propositions / Trust Pillars Bar */}
+      {/* 6. Value Propositions / Trust Pillars Bar */}
       <section className="viva-trust-pillars-section">
         <div className="viva-trust-pillars-grid">
           <div className="trust-pillar-card">
-            <span className="trust-pillar-icon">🚚</span>
+            <span className="trust-pillar-icon"><TruckIcon size={20} /></span>
             <div>
               <strong>Free Shipping</strong>
               <p>On orders over ₹999</p>
@@ -474,7 +446,7 @@ export const HomePage: React.FC = () => {
           </div>
 
           <div className="trust-pillar-card">
-            <span className="trust-pillar-icon">🔄</span>
+            <span className="trust-pillar-icon"><RotateCcwIcon size={20} /></span>
             <div>
               <strong>Easy Returns</strong>
               <p>{policy?.content_markdown?.includes('7') ? '7-day' : 'Hassle-free'} easy return policy</p>
@@ -482,7 +454,7 @@ export const HomePage: React.FC = () => {
           </div>
 
           <div className="trust-pillar-card">
-            <span className="trust-pillar-icon">🔒</span>
+            <span className="trust-pillar-icon"><LockIcon size={20} /></span>
             <div>
               <strong>Secure Payments</strong>
               <p>100% secure checkout &amp; COD</p>
@@ -490,7 +462,7 @@ export const HomePage: React.FC = () => {
           </div>
 
           <div className="trust-pillar-card">
-            <span className="trust-pillar-icon">🎧</span>
+            <span className="trust-pillar-icon"><HeadphonesIcon size={20} /></span>
             <div>
               <strong>24/7 Support</strong>
               <p>AI assistance in English &amp; தமிழ்</p>

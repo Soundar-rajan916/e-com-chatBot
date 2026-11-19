@@ -14,6 +14,21 @@ import {
   updatePriority,
 } from '../../api/client';
 import { Agent, EscalationFullDetail } from '../../api/types';
+import {
+  AlertCircleIcon,
+  CheckCircleIcon,
+  AlertTriangleIcon,
+  UserIcon,
+  ChatIcon,
+  CheckIcon,
+  CloseIcon,
+  HeadphonesIcon,
+  SparklesIcon,
+  MicIcon,
+  RotateCcwIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+} from '../../components/icons';
 
 interface CaseDetailPageProps {
   currentAgent: Agent | null;
@@ -235,7 +250,7 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({ currentAgent }) 
   if (loading) {
     return (
       <div className="case-detail-container">
-        <div className="loading-state">⏳ Loading case details...</div>
+        <div className="loading-state">Loading case details...</div>
       </div>
     );
   }
@@ -243,7 +258,9 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({ currentAgent }) 
   if (error && !detail) {
     return (
       <div className="case-detail-container">
-        <div className="error-banner">⚠️ {error}</div>
+        <div className="error-banner" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <AlertCircleIcon size={16} /> {error}
+        </div>
         <button type="button" className="btn btn-outline-sm" onClick={() => navigate('/console')}>
           ← Back to Inbox
         </button>
@@ -259,8 +276,16 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({ currentAgent }) 
   return (
     <div className="case-detail-container">
       {/* Notifications */}
-      {successMsg && <div className="toast-success">✅ {successMsg}</div>}
-      {error && <div className="error-banner">⚠️ {error}</div>}
+      {successMsg && (
+        <div className="toast-success" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <CheckCircleIcon size={16} /> {successMsg}
+        </div>
+      )}
+      {error && (
+        <div className="error-banner" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <AlertCircleIcon size={16} /> {error}
+        </div>
+      )}
 
       {/* Top Header Workspace Bar */}
       <div className="case-top-bar">
@@ -273,7 +298,11 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({ currentAgent }) 
             <span className={`badge-status badge-status-${esc.status}`}>
               {(esc.status || 'open').replace('_', ' ').toUpperCase()}
             </span>
-            {esc.is_overdue && <span className="badge-overdue">⚠️ SLA BREACH</span>}
+            {esc.is_overdue && (
+              <span className="badge-overdue" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <AlertTriangleIcon size={12} /> SLA BREACH
+              </span>
+            )}
           </div>
         </div>
 
@@ -297,7 +326,9 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({ currentAgent }) 
           <div className="assignment-control">
             {esc.assigned_to ? (
               <div className="assigned-badge">
-                <span>👤 {esc.assigned_agent_name || 'Assigned'}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <UserIcon size={13} /> {esc.assigned_agent_name || 'Assigned'}
+                </span>
                 {isAssignedToMe ? (
                   <button
                     type="button"
@@ -358,8 +389,8 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({ currentAgent }) 
               </div>
               <div className="profile-row">
                 <span className="profile-label">Channel:</span>
-                <span className="badge badge-channel" style={{ background: '#dcfce7', color: '#15803d', padding: '0.15rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600 }}>
-                  💬 WhatsApp / Web
+                <span className="badge badge-channel" style={{ background: '#dcfce7', color: '#15803d', padding: '0.15rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <ChatIcon size={12} /> WhatsApp / Web
                 </span>
               </div>
               <div className="profile-row">
@@ -400,16 +431,18 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({ currentAgent }) 
                     className="btn btn-success"
                     onClick={() => void handleApproveRefund()}
                     disabled={actionLoading}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                   >
-                    ✅ Approve & Payout
+                    <CheckIcon size={14} /> Approve &amp; Payout
                   </button>
                   <button
                     type="button"
                     className="btn btn-danger"
                     onClick={() => setShowRejectModal(true)}
                     disabled={actionLoading}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                   >
-                    ❌ Reject Refund
+                    <CloseIcon size={14} /> Reject Refund
                   </button>
                 </div>
               )}
@@ -466,16 +499,24 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({ currentAgent }) 
               {detail.messages.map((m) => (
                 <div key={m.id} className={`transcript-bubble bubble-${m.role}`}>
                   <div className="bubble-header">
-                    <span className="bubble-sender">
-                      {m.role === 'user'
-                        ? `👤 ${detail.customer.name}`
-                        : m.role === 'agent'
-                          ? `🎧 Support Agent (${m.agent_name || 'Staff'})`
-                          : '🤖 AI Assistant'}
+                    <span className="bubble-sender" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      {m.role === 'user' ? (
+                        <>
+                          <UserIcon size={13} /> {detail.customer.name}
+                        </>
+                      ) : m.role === 'agent' ? (
+                        <>
+                          <HeadphonesIcon size={13} /> Support Agent ({m.agent_name || 'Staff'})
+                        </>
+                      ) : (
+                        <>
+                          <SparklesIcon size={13} /> AI Assistant
+                        </>
+                      )}
                     </span>
                     {m.input_mode === 'voice' && (
-                      <span className="voice-input-tag" title="Sent as Voice Note">
-                        🎤 Voice Note
+                      <span className="voice-input-tag" title="Sent as Voice Note" style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                        <MicIcon size={12} /> Voice Note
                       </span>
                     )}
                     <span className="bubble-time">
@@ -484,7 +525,10 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({ currentAgent }) 
                         minute: '2-digit',
                       })}
                       {m.role !== 'user' && (
-                        <span title="Delivered via WhatsApp" style={{ marginLeft: '4px', color: '#38bdf8' }}>✓✓</span>
+                        <span title="Delivered via WhatsApp" style={{ marginLeft: '4px', color: '#38bdf8', display: 'inline-flex', alignItems: 'center' }}>
+                          <CheckIcon size={10} />
+                          <CheckIcon size={10} style={{ marginLeft: '-4px' }} />
+                        </span>
                       )}
                     </span>
                   </div>
@@ -509,8 +553,13 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({ currentAgent }) 
                           className="trace-toggle-btn"
                           onClick={() => setExpandedTraceId(isExpanded ? null : trace.id)}
                         >
-                          <span>
-                            {isExpanded ? '▼' : '▶'} Intent: <strong>{trace.intent}</strong> ({trace.language})
+                          <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                            {isExpanded ? (
+                              <ChevronDownIcon size={14} style={{ marginRight: '6px' }} />
+                            ) : (
+                              <ChevronRightIcon size={14} style={{ marginRight: '6px' }} />
+                            )}
+                            Intent: <strong style={{ marginLeft: '4px' }}>{trace.intent}</strong> ({trace.language})
                           </span>
                           <span className="trace-cost">
                             {trace.prompt_tokens + trace.completion_tokens} tokens • ₹{trace.cost_inr} • {trace.latency_ms}ms
@@ -559,7 +608,9 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({ currentAgent }) 
                     className="btn btn-primary"
                     disabled={actionLoading || !replyMessage.trim() || esc.status === 'resolved'}
                   >
-                    💬 Send to Customer
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <ChatIcon size={16} /> Send to Customer
+                    </span>
                   </button>
                 </div>
               </form>
@@ -569,9 +620,12 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({ currentAgent }) 
             <div className="case-resolution-box">
               {esc.status === 'resolved' ? (
                 <div className="resolution-resolved-display">
-                  <div className="resolved-banner">
-                    ✅ <strong>Case Resolved</strong> on{' '}
-                    {esc.resolved_at ? new Date(esc.resolved_at).toLocaleString() : 'N/A'}
+                  <div className="resolved-banner" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <CheckCircleIcon size={16} style={{ color: '#16a34a', flexShrink: 0 }} />
+                    <span>
+                      <strong>Case Resolved</strong> on{' '}
+                      {esc.resolved_at ? new Date(esc.resolved_at).toLocaleString() : 'N/A'}
+                    </span>
                   </div>
                   {esc.resolution_note && (
                     <p className="resolution-note-text">
@@ -584,7 +638,9 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({ currentAgent }) 
                     onClick={() => void handleReopen()}
                     disabled={actionLoading}
                   >
-                    🔄 Reopen Case
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <RotateCcwIcon size={14} /> Reopen Case
+                    </span>
                   </button>
                 </div>
               ) : (
@@ -606,7 +662,9 @@ export const CaseDetailPage: React.FC<CaseDetailPageProps> = ({ currentAgent }) 
                     className="btn btn-success resolve-btn"
                     disabled={actionLoading || !resolutionNote.trim()}
                   >
-                    🏁 Resolve & Close Case
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <CheckCircleIcon size={16} /> Resolve & Close Case
+                    </span>
                   </button>
                 </form>
               )}

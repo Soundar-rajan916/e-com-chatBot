@@ -7,6 +7,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { Footer } from './components/Footer';
 import { HealthBanner } from './components/HealthBanner';
 import { Navbar } from './components/Navbar';
+import { ShieldIcon, UserIcon } from './components/icons';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { useHealth } from './hooks/useHealth';
@@ -60,7 +61,9 @@ const MainLayout: React.FC = () => {
       {isConsoleRoute ? (
         <header className="app-header">
           <NavLink to="/console" className="app-branding">
-            <span>🛡️ Regional Support Console</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              <ShieldIcon size={18} /> Regional Support Console
+            </span>
           </NavLink>
           <nav className="app-nav" aria-label="Console Navigation">
             <NavLink
@@ -81,7 +84,9 @@ const MainLayout: React.FC = () => {
             </NavLink>
             {currentAgent && (
               <div className="nav-agent-pill">
-                <span className="nav-agent-name">🎧 {currentAgent.name} ({currentAgent.role})</span>
+                <span className="nav-agent-name" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <UserIcon size={14} /> {currentAgent.name} ({currentAgent.role})
+                </span>
                 <button
                   type="button"
                   className="nav-logout-btn"

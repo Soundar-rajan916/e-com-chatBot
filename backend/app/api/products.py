@@ -6,9 +6,10 @@ import uuid
 from decimal import Decimal
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from sqlalchemy import distinct, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.config import get_settings
 from app.db import get_session
@@ -313,10 +314,11 @@ def generate_product_svg(product_id: str, name: str, category: str, price: Decim
 @router.get("/{id_str}/image.svg")
 async def get_product_image_svg(
     id_str: str,
+    request: Request,
     session: Annotated[AsyncSession, Depends(get_session)],
 ) -> Response:
-    # Try finding product by ID or SKU
-    stmt = select(Product)
+    # Try finding product by ID or SKU with attached product_image
+    stmt = select(Product).options(selectinload(Product.image))
     try:
         val_uuid = uuid.UUID(id_str)
         stmt = stmt.where(Product.id == val_uuid)
@@ -328,15 +330,41 @@ async def get_product_image_svg(
     if not product:
         # Generate generic SVG
         svg_content = generate_product_svg("generic", "Product Image", "Store", Decimal("0.00"))
-    else:
-        svg_content = generate_product_svg(
-            str(product.id), product.name_en, product.category, product.price
+        etag = f'"{hashlib.md5(svg_content.encode("utf-8")).hexdigest()}"'
+        if request.headers.get("if-none-match") == etag:
+            return Response(status_code=304, headers={"ETag": etag, "Cache-Control": "public, max-age=86400"})
+        return Response(
+            content=svg_content,
+            media_type="image/svg+xml",
+            headers={"Cache-Control": "public, max-age=86400", "ETag": etag},
         )
+
+    # If verified or override image exists, redirect 302 to the CDN URL
+    if product.image and product.image.status in ("verified", "override") and product.image.url:
+        etag = f'"{product.image.phash or str(product.image.id)}"'
+        if request.headers.get("if-none-match") == etag:
+            return Response(status_code=304, headers={"ETag": etag, "Cache-Control": "public, max-age=86400"})
+        return Response(
+            status_code=302,
+            headers={
+                "Location": product.image.url,
+                "Cache-Control": "public, max-age=86400",
+                "ETag": etag,
+            },
+        )
+
+    # Fallback to generated SVG
+    svg_content = generate_product_svg(
+        str(product.id), product.name_en, product.category, product.price
+    )
+    etag = f'"{hashlib.md5(svg_content.encode("utf-8")).hexdigest()}"'
+    if request.headers.get("if-none-match") == etag:
+        return Response(status_code=304, headers={"ETag": etag, "Cache-Control": "public, max-age=86400"})
 
     return Response(
         content=svg_content,
         media_type="image/svg+xml",
-        headers={"Cache-Control": "public, max-age=86400"},
+        headers={"Cache-Control": "public, max-age=86400", "ETag": etag},
     )
 
 
@@ -357,7 +385,15 @@ async def list_products(
     # Base conditions
     base_filters = [Product.is_active.is_(True)]
     if category:
-        base_filters.append(Product.category == category)
+        cat_clean = category.lower().strip()
+        if cat_clean in ("mens_wear", "menswear", "men", "all"):
+            # Whole menswear store catalog - do not restrict by single subcategory
+            pass
+        elif cat_clean in ("sarees_ethnic", "ethnic", "dhoti", "dhotis"):
+            # Map legacy sarees_ethnic / dhoti parameter to active dhotis_ethnic category
+            base_filters.append(Product.category == "dhotis_ethnic")
+        else:
+            base_filters.append(Product.category == category)
     if min_price is not None:
         base_filters.append(Product.price >= min_price)
     if max_price is not None:
@@ -422,8 +458,8 @@ async def list_products(
     count_stmt = select(func.count(Product.id)).where(*base_filters)
     total = (await session.execute(count_stmt)).scalar() or 0
 
-    # Main data query
-    stmt = select(Product).where(*base_filters)
+    # Main data query with eager loaded image
+    stmt = select(Product).options(selectinload(Product.image)).where(*base_filters)
 
     # Sorting
     if product_id_ranks and sort == "newest":
@@ -463,8 +499,19 @@ async def list_products(
 
     total_pages = (total + page_size - 1) // page_size if total > 0 else 1
 
-    return ProductListResponse(
-        items=[
+    item_responses = []
+    for p in products:
+        img_url = f"/api/products/{p.id}/image.svg"
+        credit = None
+        img_status = "placeholder"
+        if p.image:
+            img_status = p.image.status
+            if p.image.status in ("verified", "override") and p.image.url:
+                img_url = p.image.url
+                if p.image.photographer:
+                    credit = f"Photo: {p.image.photographer} / {p.image.provider.capitalize()}"
+
+        item_responses.append(
             ProductListItemResponse(
                 id=p.id,
                 sku=p.sku,
@@ -475,10 +522,14 @@ async def list_products(
                 price=p.price,
                 stock_qty=p.stock_qty,
                 rating=p.rating,
-                image_url=f"/api/products/{p.id}/image.svg",
+                image_url=img_url,
+                image_credit=credit,
+                image_status=img_status,
             )
-            for p in products
-        ],
+        )
+
+    return ProductListResponse(
+        items=item_responses,
         total=total,
         page=page,
         page_size=page_size,
@@ -524,7 +575,7 @@ async def get_product_detail(
     id_or_sku: str,
     session: Annotated[AsyncSession, Depends(get_session)],
 ) -> ProductDetailResponse:
-    stmt = select(Product)
+    stmt = select(Product).options(selectinload(Product.image))
     try:
         val_uuid = uuid.UUID(id_or_sku)
         stmt = stmt.where(Product.id == val_uuid)
@@ -539,6 +590,16 @@ async def get_product_detail(
             detail="Product not found or currently unavailable.",
         )
 
+    img_url = f"/api/products/{product.id}/image.svg"
+    credit = None
+    img_status = "placeholder"
+    if product.image:
+        img_status = product.image.status
+        if product.image.status in ("verified", "override") and product.image.url:
+            img_url = product.image.url
+            if product.image.photographer:
+                credit = f"Photo: {product.image.photographer} / {product.image.provider.capitalize()}"
+
     return ProductDetailResponse(
         id=product.id,
         sku=product.sku,
@@ -552,7 +613,9 @@ async def get_product_detail(
         stock_qty=product.stock_qty,
         is_active=product.is_active,
         rating=product.rating,
-        image_url=f"/api/products/{product.id}/image.svg",
+        image_url=img_url,
+        image_credit=credit,
+        image_status=img_status,
     )
 
 
@@ -576,30 +639,44 @@ async def get_related_products(
 
     related_stmt = (
         select(Product)
+        .options(selectinload(Product.image))
         .where(
             Product.category == product.category,
             Product.id != product.id,
             Product.is_active.is_(True),
-            Product.stock_qty > 0,
         )
-        .order_by(Product.rating.desc().nullslast(), Product.stock_qty.desc())
+        .order_by(Product.rating.desc().nullslast(), Product.created_at.desc())
         .limit(4)
     )
-    rel_res = await session.execute(related_stmt)
-    related = rel_res.scalars().all()
+    related_res = await session.execute(related_stmt)
+    related_products = list(related_res.scalars().all())
 
-    return [
-        ProductListItemResponse(
-            id=p.id,
-            sku=p.sku,
-            name_en=p.name_en,
-            name_ta=p.name_ta,
-            category=p.category,
-            subcategory=p.subcategory,
-            price=p.price,
-            stock_qty=p.stock_qty,
-            rating=p.rating,
-            image_url=f"/api/products/{p.id}/image.svg",
+    results = []
+    for p in related_products:
+        p_img_url = f"/api/products/{p.id}/image.svg"
+        p_credit = None
+        p_status = "placeholder"
+        if p.image:
+            p_status = p.image.status
+            if p.image.status in ("verified", "override") and p.image.url:
+                p_img_url = p.image.url
+                if p.image.photographer:
+                    p_credit = f"Photo: {p.image.photographer} / {p.image.provider.capitalize()}"
+
+        results.append(
+            ProductListItemResponse(
+                id=p.id,
+                sku=p.sku,
+                name_en=p.name_en,
+                name_ta=p.name_ta,
+                category=p.category,
+                subcategory=p.subcategory,
+                price=p.price,
+                stock_qty=p.stock_qty,
+                rating=p.rating,
+                image_url=p_img_url,
+                image_credit=p_credit,
+                image_status=p_status,
+            )
         )
-        for p in related
-    ]
+    return results

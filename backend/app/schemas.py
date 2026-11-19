@@ -254,6 +254,8 @@ class ProductDetailResponse(BaseModel):
     is_active: bool
     rating: Decimal | None = None
     image_url: str
+    image_credit: str | None = None
+    image_status: str = "placeholder"
 
     @model_validator(mode="before")
     @classmethod
@@ -287,6 +289,8 @@ class ProductListItemResponse(BaseModel):
     stock: int | None = None
     rating: Decimal | None = None
     image_url: str
+    image_credit: str | None = None
+    image_status: str = "placeholder"
 
     @model_validator(mode="before")
     @classmethod

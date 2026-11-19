@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { devAdvanceOrder, devSetDeliveredDaysAgo, getStoreConfig } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { SettingsIcon, CloseIcon } from './icons';
 
 export const DevToolsPanel: React.FC = () => {
   const [isEnabled, setIsEnabled] = useState(false);
@@ -66,19 +67,23 @@ export const DevToolsPanel: React.FC = () => {
           className="dev-tools-toggle-btn"
           onClick={() => setIsOpen(true)}
           title="Open Developer Testing Tools"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
         >
-          🛠️ Dev Tools
+          <SettingsIcon size={14} /> Dev Tools
         </button>
       ) : (
         <div className="dev-tools-panel">
           <div className="dev-tools-header">
-            <h3>🛠️ Store Dev Tools</h3>
+            <h3 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <SettingsIcon size={16} /> Store Dev Tools
+            </h3>
             <button
               type="button"
               className="dev-tools-close-btn"
               onClick={() => setIsOpen(false)}
+              aria-label="Close Dev Tools"
             >
-              ✕
+              <CloseIcon size={16} />
             </button>
           </div>
 
